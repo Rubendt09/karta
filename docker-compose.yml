@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: karta-postgres
+    environment:
+      POSTGRES_DB: karta_db
+      POSTGRES_USER: karta_user
+      POSTGRES_PASSWORD: karta_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - karta-network
+
+  app:
+    build: .
+    container_name: karta-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/karta_db
+      SPRING_DATASOURCE_USERNAME: karta_user
+      SPRING_DATASOURCE_PASSWORD: karta_password
+      JWT_SECRET: your-secret-key-change-in-production
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - karta-network
+
+volumes:
+  postgres-data:
+
+networks:
+  karta-network:
+    driver: bridge
