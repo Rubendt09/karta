@@ -1,15 +1,13 @@
 import { CONFIG } from 'src/config-global';
-
-import { ProductsView } from 'src/sections/product/view';
+import { AuditView } from 'src/sections/admin/audit-view';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Products - ${CONFIG.appName}`}</title>
-
-      <ProductsView />
+      <title>{`Auditoría de Actividad - ${CONFIG.appName}`}</title>
+      <AuditView />
     </>
   );
 }

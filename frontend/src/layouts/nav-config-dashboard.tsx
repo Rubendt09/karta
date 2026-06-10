@@ -1,5 +1,6 @@
 import { Label } from 'src/components/label';
 import { SvgColor } from 'src/components/svg-color';
+import { InvitationsPage } from 'src/routes/sections';
 
 // ----------------------------------------------------------------------
 
@@ -24,8 +25,18 @@ export const navData = [
     icon: icon('solar--folder-with-files-outline'),
   },
   {
-    title: 'Usuarios invitados',
-    path: '/user',
+    title: 'Mis invitaciones',
+    path: '/invitations',
+    icon: icon('solar--users-group-two-rounded-linear'),
+  },
+  {
+    title: 'Gestión de Usuarios',
+    path: '/users',
+    icon: icon('solar--users-group-two-rounded-linear'),
+  },
+  {
+    title: 'Auditoría de actividad',
+    path: '/audit',
     icon: icon('solar--users-group-two-rounded-linear'),
   },
 ];

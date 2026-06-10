@@ -1,11 +1,28 @@
 import { Box, Button, Grid, IconButton, InputAdornment, MenuItem, Select, TextField } from "@mui/material";
 import { useState } from "react";
 import { Iconify } from "src/components/iconify";
+import type { ProjectStatus } from "src/types/project";
 
-export function ToolbarProject() {
+interface ToolbarProjectProps {
+  onStatusFilter: (status: ProjectStatus | 'ALL') => void;
+  onSearch: (query: string) => void;
+  currentStatus: ProjectStatus | 'ALL';
+}
+
+export function ToolbarProject({ onStatusFilter, onSearch, currentStatus }: ToolbarProjectProps) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        onSearch(value);
+    };
+
+    const handleStatusChange = (e: any) => {
+        const value = e.target.value;
+        onStatusFilter(value);
+    };
 
     return <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 12, md: 8 }}>
@@ -15,7 +32,7 @@ export function ToolbarProject() {
                     fullWidth
                     placeholder="Buscar proyectos..."
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearchChange}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -27,14 +44,14 @@ export function ToolbarProject() {
 
                 {/* Status Filter */}
                 <Select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    value={currentStatus}
+                    onChange={handleStatusChange}
                     sx={{ minWidth: 160 }}
                 >
-                    <MenuItem value="all">Todos los Estados</MenuItem>
-                    <MenuItem value="active">Activos</MenuItem>
-                    <MenuItem value="deprioritized">Despriorizados</MenuItem>
-                    <MenuItem value="archived">Archivados</MenuItem>
+                    <MenuItem value="ALL">Todos los Estados</MenuItem>
+                    <MenuItem value="ACTIVO">Activos</MenuItem>
+                    <MenuItem value="DESPRIORIZADO">Despriorizados</MenuItem>
+                    <MenuItem value="ARCHIVADO">Archivados</MenuItem>
                 </Select>
             </Box>
         </Grid>

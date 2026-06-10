@@ -1,15 +1,13 @@
 import { CONFIG } from 'src/config-global';
-
-import { UserView } from 'src/sections/user/view';
+import { InvitationsView } from 'src/sections/invitations/invitations-view';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Users - ${CONFIG.appName}`}</title>
-
-      <UserView />
+      <title>{`Mis Invitaciones - ${CONFIG.appName}`}</title>
+      <InvitationsView />
     </>
   );
 }

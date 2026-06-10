@@ -5,6 +5,8 @@ import com.bisoshi.karta.modules.admin.dto.DashboardMetrics;
 import com.bisoshi.karta.modules.admin.dto.ProjectSummary;
 import com.bisoshi.karta.modules.admin.dto.UserActivity;
 import com.bisoshi.karta.modules.admin.service.AdminService;
+import com.bisoshi.karta.modules.auth.dto.UserResponse;
+import com.bisoshi.karta.modules.auth.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import java.util.List;
 public class AdminController {
     
     private final AdminService adminService;
+    private final UserService userService;
     
     @GetMapping("/dashboard")
     @Operation(summary = "Get dashboard metrics", description = "Retrieve dashboard metrics for admin")
@@ -44,5 +47,12 @@ public class AdminController {
     public ResponseEntity<ResponseDto<List<ProjectSummary>>> getProjectSummary() {
         List<ProjectSummary> summary = adminService.getProjectSummary();
         return ResponseEntity.ok(ResponseDto.success("Project summary retrieved successfully", summary));
+    }
+    
+    @GetMapping("/users")
+    @Operation(summary = "Get all users", description = "Get all users (admin only)")
+    public ResponseEntity<ResponseDto<List<UserResponse>>> getUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(ResponseDto.success("Users retrieved successfully", users));
     }
 }

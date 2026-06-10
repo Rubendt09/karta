@@ -3,6 +3,8 @@ package com.bisoshi.karta.modules.document.service;
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
 import com.bisoshi.karta.modules.auth.model.Role;
+import com.bisoshi.karta.modules.auth.model.User;
+import com.bisoshi.karta.modules.auth.repository.UserRepository;
 import com.bisoshi.karta.modules.document.dto.DocumentResponse;
 import com.bisoshi.karta.modules.document.dto.UpdateDocumentRequest;
 import com.bisoshi.karta.modules.document.dto.UploadDocumentRequest;
@@ -35,6 +37,7 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final ProjectRepository projectRepository;
     private final ProjectAccessRepository projectAccessRepository;
+    private final UserRepository userRepository;
     
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -160,7 +163,10 @@ public class DocumentService {
     }
     
     private UUID getUserIdFromAuthentication(Authentication authentication) {
-        return UUID.fromString(authentication.getName());
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
+        return user.getId();
     }
     
     private Role getRoleFromAuthentication(Authentication authentication) {

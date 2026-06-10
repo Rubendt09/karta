@@ -3,6 +3,8 @@ package com.bisoshi.karta.modules.permission.service;
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
 import com.bisoshi.karta.modules.auth.model.Role;
+import com.bisoshi.karta.modules.auth.model.User;
+import com.bisoshi.karta.modules.auth.repository.UserRepository;
 import com.bisoshi.karta.modules.permission.dto.GrantAccessRequest;
 import com.bisoshi.karta.modules.permission.dto.ProjectAccessResponse;
 import com.bisoshi.karta.modules.permission.dto.UpdateAccessRequest;
@@ -26,6 +28,7 @@ public class PermissionService {
     
     private final ProjectAccessRepository projectAccessRepository;
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
     
     public List<ProjectAccessResponse> getProjectAccesses(@NonNull UUID projectId, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
@@ -145,7 +148,10 @@ public class PermissionService {
     }
     
     private UUID getUserIdFromAuthentication(Authentication authentication) {
-        return UUID.fromString(authentication.getName());
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
+        return user.getId();
     }
     
     private Role getRoleFromAuthentication(Authentication authentication) {

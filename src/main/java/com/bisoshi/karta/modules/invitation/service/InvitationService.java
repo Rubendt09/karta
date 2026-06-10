@@ -52,6 +52,13 @@ public class InvitationService {
                 .collect(Collectors.toList());
     }
     
+    public List<InvitationResponse> getMyInvitations(Authentication authentication) {
+        String email = authentication.getName();
+        return invitationRepository.findByEmail(email).stream()
+                .map(this::mapToInvitationResponse)
+                .collect(Collectors.toList());
+    }
+    
     public InvitationResponse createInvitation(@NonNull UUID projectId, CreateInvitationRequest request, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
@@ -161,7 +168,10 @@ public class InvitationService {
     }
     
     private UUID getUserIdFromAuthentication(Authentication authentication) {
-        return UUID.fromString(authentication.getName());
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
+        return user.getId();
     }
     
     private Role getRoleFromAuthentication(Authentication authentication) {

@@ -15,10 +15,13 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 // ----------------------------------------------------------------------
 
 export const DashboardPage = lazy(() => import('src/pages/dashboard'));
-export const UserPage = lazy(() => import('src/pages/user'));
+export const UsersPage = lazy(() => import('src/pages/users'));
+export const AuditPage = lazy(() => import('src/pages/audit'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
-export const ProductsPage = lazy(() => import('src/pages/products'));
+export const RegisterInvitedPage = lazy(() => import('src/pages/register-invited'));
 export const ProjectsPage = lazy(() => import('src/pages/projects'));
+export const ProjectDetailPage = lazy(() => import('src/pages/project-detail'));
+export const InvitationsPage = lazy(() => import('src/pages/invitations'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 
 const renderFallback = () => (
@@ -63,6 +66,16 @@ export const routesSection: RouteObject[] = [
     ),
   },
   {
+    path: 'register-invited',
+    element: (
+      <AuthGuard redirectIfAuthenticated>
+        <AuthLayout>
+          <RegisterInvitedPage />
+        </AuthLayout>
+      </AuthGuard>
+    ),
+  },
+  {
     element: (
       <AuthGuard>
         <DashboardLayout>
@@ -75,8 +88,10 @@ export const routesSection: RouteObject[] = [
     children: [
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'projects', element: <ProjectsPage /> },
-      { path: 'user', element: <UserPage /> },
-      { path: 'products', element: <ProductsPage /> },
+      { path: 'projects/:id', element: <ProjectDetailPage /> },
+      { path: 'invitations', element: <InvitationsPage /> },
+      { path: 'users', element: <UsersPage /> },
+      { path: 'audit', element: <AuditPage /> },
     ],
   },
   {

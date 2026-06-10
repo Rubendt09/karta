@@ -3,6 +3,8 @@ package com.bisoshi.karta.modules.project.service;
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
 import com.bisoshi.karta.modules.auth.model.Role;
+import com.bisoshi.karta.modules.auth.model.User;
+import com.bisoshi.karta.modules.auth.repository.UserRepository;
 import com.bisoshi.karta.modules.project.dto.CreateProjectRequest;
 import com.bisoshi.karta.modules.project.dto.ProjectResponse;
 import com.bisoshi.karta.modules.project.dto.UpdateProjectRequest;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class ProjectService {
     
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
     
     public List<ProjectResponse> getAllProjects(Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
@@ -127,7 +130,10 @@ public class ProjectService {
     }
     
     private UUID getUserIdFromAuthentication(Authentication authentication) {
-        return UUID.fromString(authentication.getName());
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
+        return user.getId();
     }
     
     private Role getRoleFromAuthentication(Authentication authentication) {

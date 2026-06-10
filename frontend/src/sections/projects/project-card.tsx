@@ -1,20 +1,32 @@
 import { Grid, Card, CardContent, Box, IconButton, Chip, Typography, Divider, Button } from "@mui/material";
 import { Iconify } from "src/components/iconify";
+import type { ProjectStatus } from "src/types/project";
 
-export function ProjectCard(project: { id: number; title: string; description: string; status: string; role: string; documents: number; updatedAt: string; }) {
+interface ProjectCardProps {
+  id: string;
+  title: string;
+  description: string;
+  status: ProjectStatus;
+  role: string;
+  documents: number;
+  updatedAt: string;
+  onDelete?: () => void;
+}
+
+export function ProjectCard({ id, title, description, status, role, documents, updatedAt, onDelete }: ProjectCardProps) {
 
     const statusConfig = {
-        active: {
+        ACTIVO: {
             label: 'Activo',
             color: 'success',
             bgColor: 'success',
         },
-        deprioritized: {
+        DESPRIORIZADO: {
             label: 'Despriorizado',
             color: 'warning',
             bgColor: 'warning',
         },
-        archived: {
+        ARCHIVADO: {
             label: 'Archivado',
             color: 'default',
             bgColor: 'default',
@@ -32,18 +44,18 @@ export function ProjectCard(project: { id: number; title: string; description: s
         },
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = () => {
         const config = statusConfig[status as keyof typeof statusConfig];
         return config ? config.color : 'default';
     };
 
-    const getRoleColor = (role: string) => {
+    const getRoleColor = () => {
         const config = roleConfig[role as keyof typeof roleConfig];
         return config ? config.color : 'default';
     };
 
 
-    return <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={project.id}>
+    return <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={id}>
         <Card
             sx={{
                 height: '100%',
@@ -61,8 +73,8 @@ export function ProjectCard(project: { id: number; title: string; description: s
                         sx={{
                             p: 1.5,
                             borderRadius: 2,
-                            bgcolor: `${getStatusColor(project.status)}.lighter`,
-                            color: `${getStatusColor(project.status)}.main`,
+                            bgcolor: `${getStatusColor()}.lighter`,
+                            color: `${getStatusColor()}.main`,
                         }}
                     >
                         <Iconify icon="solar:folder-favourite-bookmark-bold" width={32} />
@@ -72,9 +84,9 @@ export function ProjectCard(project: { id: number; title: string; description: s
                             <Iconify icon="eva:more-vertical-fill" />
                         </IconButton>
                         <Chip
-                            label={statusConfig[project.status as keyof typeof statusConfig]?.label}
+                            label={statusConfig[status as keyof typeof statusConfig]?.label}
                             size="small"
-                            color={getStatusColor(project.status) as any}
+                            color={getStatusColor() as any}
                             sx={{
                                 fontSize: 11,
                                 fontWeight: 700,
@@ -86,18 +98,18 @@ export function ProjectCard(project: { id: number; title: string; description: s
 
                 {/* Title and Description */}
                 <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    {project.title}
+                    {title}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {project.description}
+                    {description}
                 </Typography>
 
                 {/* Role Tag */}
                 <Box sx={{ mb: 2 }}>
                     <Chip
-                        label={roleConfig[project.role as keyof typeof roleConfig]?.label}
+                        label={roleConfig[role as keyof typeof roleConfig]?.label}
                         size="small"
-                        color={getRoleColor(project.role) as any}
+                        color={getRoleColor() as any}
                         variant="outlined" />
                 </Box>
 
@@ -108,13 +120,13 @@ export function ProjectCard(project: { id: number; title: string; description: s
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Iconify icon="solar:file-bold-duotone" width={18} />
                             <Typography variant="caption" sx={{ fontWeight: 500 }}>
-                                {project.documents}
+                                {documents}
                             </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <Iconify icon="solar:clock-circle-outline" width={18} />
                             <Typography variant="caption" sx={{ fontWeight: 500 }}>
-                                {project.updatedAt}
+                                {updatedAt}
                             </Typography>
                         </Box>
                     </Box>
