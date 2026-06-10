@@ -11,9 +11,10 @@ interface ProjectCardProps {
   documents: number;
   updatedAt: string;
   onDelete?: () => void;
+  onViewDetail?: () => void;
 }
 
-export function ProjectCard({ id, title, description, status, role, documents, updatedAt, onDelete }: ProjectCardProps) {
+export function ProjectCard({ id, title, description, status, role, documents, updatedAt, onDelete, onViewDetail }: ProjectCardProps) {
 
     const statusConfig = {
         ACTIVO: {
@@ -80,9 +81,6 @@ export function ProjectCard({ id, title, description, status, role, documents, u
                         <Iconify icon="solar:folder-favourite-bookmark-bold" width={32} />
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-                        <IconButton size="small">
-                            <Iconify icon="eva:more-vertical-fill" />
-                        </IconButton>
                         <Chip
                             label={statusConfig[status as keyof typeof statusConfig]?.label}
                             size="small"
@@ -130,7 +128,7 @@ export function ProjectCard({ id, title, description, status, role, documents, u
                             </Typography>
                         </Box>
                     </Box>
-                    <Button size="small" sx={{ fontWeight: 700 }}>
+                    <Button size="small" sx={{ fontWeight: 700 }} onClick={onViewDetail}>
                         Ver Detalle
                     </Button>
                 </Box>

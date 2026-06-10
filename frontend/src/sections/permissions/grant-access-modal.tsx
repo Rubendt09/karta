@@ -143,7 +143,7 @@ export function GrantAccessModal({
           placeholder="Escribe para buscar..."
           onChange={(e) => handleSearchUsers(e.target.value)}
           disabled={loading}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2, mt: 1 }}
         />
 
         {/* Search Results */}

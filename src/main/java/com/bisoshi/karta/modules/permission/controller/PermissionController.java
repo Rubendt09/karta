@@ -40,6 +40,13 @@ public class PermissionController {
         return ResponseEntity.ok(ResponseDto.success("Access retrieved successfully", access));
     }
     
+    @GetMapping("/me")
+    @Operation(summary = "Get current user access for a project", description = "Get current user access for a project")
+    public ResponseEntity<ResponseDto<ProjectAccessResponse>> getMyAccess(@PathVariable @NonNull UUID projectId, Authentication authentication) {
+        ProjectAccessResponse access = permissionService.getMyAccess(projectId, authentication);
+        return ResponseEntity.ok(ResponseDto.success("My access retrieved successfully", access));
+    }
+    
     @PostMapping
     @Operation(summary = "Grant access to a project", description = "Grant access to a project")
     public ResponseEntity<ResponseDto<ProjectAccessResponse>> grantAccess(@PathVariable @NonNull UUID projectId, @Valid @RequestBody GrantAccessRequest request, Authentication authentication) {

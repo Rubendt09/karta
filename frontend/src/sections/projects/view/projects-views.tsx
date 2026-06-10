@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -13,6 +14,7 @@ import { projectService } from 'src/services/projectService';
 import type { ProjectResponse, ProjectStatus } from 'src/types/project';
 
 export function ProjectsView() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +63,10 @@ export function ProjectsView() {
 
   const handleProjectDeleted = () => {
     loadProjects();
+  };
+
+  const handleViewDetail = (projectId: string) => {
+    navigate(`/projects/${projectId}`);
   };
 
   if (loading) {
@@ -116,6 +122,7 @@ export function ProjectsView() {
             documents={project.documentCount || 0}
             updatedAt={new Date(project.updatedAt).toLocaleDateString('es-ES')}
             onDelete={handleProjectDeleted}
+            onViewDetail={() => handleViewDetail(project.id)}
           />
         ))}
 

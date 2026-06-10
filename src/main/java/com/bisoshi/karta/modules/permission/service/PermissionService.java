@@ -147,6 +147,36 @@ public class PermissionService {
         return mapToProjectAccessResponse(projectAccess);
     }
     
+    public ProjectAccessResponse getMyAccess(@NonNull UUID projectId, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        Role role = getRoleFromAuthentication(authentication);
+        
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
+        
+        // Si es el owner o admin, retorna acceso completo
+        if (role == Role.ADMIN || project.getOwnerId().equals(userId)) {
+            return new ProjectAccessResponse(
+                    null,
+                    projectId,
+                    userId,
+                    true,  // canView
+                    true,  // canEdit
+                    true,  // canDelete
+                    true,  // canDeprioritize
+                    true,  // canInvite
+                    userId,
+                    project.getCreatedAt()
+            );
+        }
+        
+        // Si no es owner, busca el acceso específico
+        ProjectAccess projectAccess = projectAccessRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Access not found"));
+        
+        return mapToProjectAccessResponse(projectAccess);
+    }
+    
     private UUID getUserIdFromAuthentication(Authentication authentication) {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
