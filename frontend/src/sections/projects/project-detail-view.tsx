@@ -7,15 +7,10 @@ import {
   Link,
   Chip,
   Button,
-  IconButton,
   CircularProgress,
   Alert,
   Tabs,
   Tab,
-  Grid,
-  Card,
-  CardContent,
-  Divider,
 } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
 import { projectService } from 'src/services/projectService';
@@ -23,6 +18,7 @@ import { permissionService } from 'src/services/permissionService';
 import { ProjectStatus, type ProjectResponse } from 'src/types/project';
 import type { UserPermissions } from 'src/types/permission';
 import { ChangeStatusModal } from './change-status-modal';
+import { DeleteProjectModal } from './delete-project-modal';
 import { DocumentsTab } from './documents-tab';
 import { AccessTab } from './access-tab';
 import { InvitationsTab } from './invitations-tab';
@@ -51,6 +47,7 @@ export function ProjectDetailView() {
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [changeStatusModalOpen, setChangeStatusModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const loadProject = async () => {
     if (!id) return;
@@ -82,6 +79,10 @@ export function ProjectDetailView() {
   const handleStatusChanged = () => {
     loadProject();
     setChangeStatusModalOpen(false);
+  };
+
+  const handleProjectDeleted = () => {
+    navigate('/projects');
   };
 
   const getStatusColor = (status: ProjectStatus) => {
@@ -188,6 +189,7 @@ export function ProjectDetailView() {
               variant="outlined"
               color="error"
               startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+              onClick={() => setDeleteModalOpen(true)}
             >
               Eliminar
             </Button>
@@ -242,6 +244,17 @@ export function ProjectDetailView() {
           projectId={id}
           currentStatus={project.status}
           onStatusChanged={handleStatusChanged}
+        />
+      )}
+
+      {/* Delete Project Modal */}
+      {id && (
+        <DeleteProjectModal
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          projectId={id}
+          projectName={project.name}
+          onProjectDeleted={handleProjectDeleted}
         />
       )}
     </Box>

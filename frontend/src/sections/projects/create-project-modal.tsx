@@ -25,7 +25,6 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
   const [formData, setFormData] = useState<CreateProjectRequest>({
     name: '',
     description: '',
-    status: ProjectStatus.ACTIVO,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +70,7 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
   };
 
   const handleClose = () => {
-    setFormData({ name: '', description: '', status: ProjectStatus.ACTIVO });
+    setFormData({ name: '', description: '' });
     setError(null);
     onClose();
   };
@@ -117,21 +116,6 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
             disabled={loading}
             sx={{ mb: 2 }}
           />
-
-          <TextField
-            margin="dense"
-            label="Estado Inicial"
-            fullWidth
-            select
-            variant="outlined"
-            value={formData.status}
-            onChange={handleChange('status')}
-            disabled={loading}
-          >
-            <MenuItem value={ProjectStatus.ACTIVO}>Activo</MenuItem>
-            <MenuItem value={ProjectStatus.DESPRIORIZADO}>Despriorizado</MenuItem>
-            <MenuItem value={ProjectStatus.ARCHIVADO}>Archivado</MenuItem>
-          </TextField>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={loading}>

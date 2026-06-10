@@ -7,11 +7,13 @@ interface ToolbarProjectProps {
   onStatusFilter: (status: ProjectStatus | 'ALL') => void;
   onSearch: (query: string) => void;
   currentStatus: ProjectStatus | 'ALL';
+  viewMode: 'grid' | 'list';
+  onViewModeChange: (mode: 'grid' | 'list') => void;
+  onCreateProject: () => void;
 }
 
-export function ToolbarProject({ onStatusFilter, onSearch, currentStatus }: ToolbarProjectProps) {
+export function ToolbarProject({ onStatusFilter, onSearch, currentStatus, viewMode, onViewModeChange, onCreateProject }: ToolbarProjectProps) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -62,7 +64,7 @@ export function ToolbarProject({ onStatusFilter, onSearch, currentStatus }: Tool
                 <Box sx={{ display: 'flex', border: 1, borderColor: 'divider', borderRadius: 1, p: 0.5 }}>
                     <IconButton
                         size="small"
-                        onClick={() => setViewMode('grid')}
+                        onClick={() => onViewModeChange('grid')}
                         sx={{
                             bgcolor: viewMode === 'grid' ? 'primary.lighter' : 'transparent',
                             color: viewMode === 'grid' ? 'primary.main' : 'text.secondary',
@@ -72,7 +74,7 @@ export function ToolbarProject({ onStatusFilter, onSearch, currentStatus }: Tool
                     </IconButton>
                     <IconButton
                         size="small"
-                        onClick={() => setViewMode('list')}
+                        onClick={() => onViewModeChange('list')}
                         sx={{
                             bgcolor: viewMode === 'list' ? 'primary.lighter' : 'transparent',
                             color: viewMode === 'list' ? 'primary.main' : 'text.secondary',
@@ -87,6 +89,7 @@ export function ToolbarProject({ onStatusFilter, onSearch, currentStatus }: Tool
                     variant="contained"
                     startIcon={<Iconify icon="solar:add-bold" />}
                     sx={{ whiteSpace: 'nowrap' }}
+                    onClick={onCreateProject}
                 >
                     Crear Proyecto
                 </Button>

@@ -42,7 +42,9 @@ export const projectService = {
     id: string,
     data: ChangeProjectStatusRequest
   ): Promise<ProjectResponse> => {
-    const response = await api.put<any>(`/projects/${id}/status`, data);
+    const response = await api.patch<any>(`/projects/${id}/status`, null, {
+      params: { status: data.status }
+    });
     return response.data.data;
   },
 };

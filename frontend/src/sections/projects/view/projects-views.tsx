@@ -7,9 +7,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { AddNewProjectCard } from '../add-new-project-card';
 import { ProjectCard } from '../project-card';
 import { ToolbarProject } from '../toolbarbar-project';
+import { CreateProjectModal } from '../create-project-modal';
 import { projectService } from 'src/services/projectService';
 import type { ProjectResponse, ProjectStatus } from 'src/types/project';
 
@@ -20,6 +20,8 @@ export function ProjectsView() {
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<ProjectStatus | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const loadProjects = async () => {
     try {
@@ -57,16 +59,21 @@ export function ProjectsView() {
     setSearchQuery(query);
   };
 
-  const handleProjectCreated = () => {
-    loadProjects();
-  };
-
-  const handleProjectDeleted = () => {
-    loadProjects();
-  };
-
   const handleViewDetail = (projectId: string) => {
     navigate(`/projects/${projectId}`);
+  };
+
+  const handleOpenCreateModal = () => {
+    setCreateModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setCreateModalOpen(false);
+  };
+
+  const handleProjectCreated = () => {
+    handleCloseCreateModal();
+    loadProjects();
   };
 
   if (loading) {
@@ -107,27 +114,43 @@ export function ProjectsView() {
         onStatusFilter={handleStatusFilter}
         onSearch={handleSearch}
         currentStatus={filterStatus}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onCreateProject={handleOpenCreateModal}
       />
 
       {/* Projects Grid */}
       <Grid container spacing={3}>
         {filteredProjects.map((project) => (
-          <ProjectCard
-            key={project.id}
-            id={project.id}
-            title={project.name}
-            description={project.description}
-            status={project.status}
-            role={project.ownerId === 'current-user-id' ? 'owner' : 'guest'} // TODO: Get current user ID from auth
-            documents={project.documentCount || 0}
-            updatedAt={new Date(project.updatedAt).toLocaleDateString('es-ES')}
-            onDelete={handleProjectDeleted}
-            onViewDetail={() => handleViewDetail(project.id)}
-          />
+          viewMode === 'grid' ? (
+            <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={project.id}>
+              <ProjectCard
+                id={project.id}
+                title={project.name}
+                description={project.description}
+                status={project.status}
+                role={project.ownerId === 'current-user-id' ? 'owner' : 'guest'} // TODO: Get current user ID from auth
+                documents={project.documentCount || 0}
+                updatedAt={new Date(project.updatedAt).toLocaleDateString('es-ES')}
+                onViewDetail={() => handleViewDetail(project.id)}
+              />
+            </Grid>
+          ) : (
+            <Grid size={12} key={project.id}>
+              <ProjectCard
+                id={project.id}
+                title={project.name}
+                description={project.description}
+                status={project.status}
+                role={project.ownerId === 'current-user-id' ? 'owner' : 'guest'} // TODO: Get current user ID from auth
+                documents={project.documentCount || 0}
+                updatedAt={new Date(project.updatedAt).toLocaleDateString('es-ES')}
+                onViewDetail={() => handleViewDetail(project.id)}
+              />
+            </Grid>
+          )
         ))}
 
-        {/* Add New Project Card */}
-        <AddNewProjectCard onProjectCreated={handleProjectCreated} />
       </Grid>
 
       {filteredProjects.length === 0 && !loading && (
@@ -149,6 +172,12 @@ export function ProjectsView() {
           </Typography>
         </Box>
       )}
+      
+      <CreateProjectModal
+        open={createModalOpen}
+        onClose={handleCloseCreateModal}
+        onProjectCreated={handleProjectCreated}
+      />
     </DashboardContent>
   );
 }

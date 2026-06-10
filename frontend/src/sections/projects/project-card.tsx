@@ -1,4 +1,4 @@
-import { Grid, Card, CardContent, Box, IconButton, Chip, Typography, Divider, Button } from "@mui/material";
+import { Card, CardContent, Box, Chip, Typography, Divider, Button, Grid } from "@mui/material";
 import { Iconify } from "src/components/iconify";
 import type { ProjectStatus } from "src/types/project";
 
@@ -10,11 +10,10 @@ interface ProjectCardProps {
   role: string;
   documents: number;
   updatedAt: string;
-  onDelete?: () => void;
   onViewDetail?: () => void;
 }
 
-export function ProjectCard({ id, title, description, status, role, documents, updatedAt, onDelete, onViewDetail }: ProjectCardProps) {
+export function ProjectCard({ id, title, description, status, role, documents, updatedAt, onViewDetail }: ProjectCardProps) {
 
     const statusConfig = {
         ACTIVO: {
@@ -56,8 +55,7 @@ export function ProjectCard({ id, title, description, status, role, documents, u
     };
 
 
-    return <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={id}>
-        <Card
+    return <Card
             sx={{
                 height: '100%',
                 transition: 'all 0.2s',
@@ -133,6 +131,5 @@ export function ProjectCard({ id, title, description, status, role, documents, u
                     </Button>
                 </Box>
             </CardContent>
-        </Card>
-    </Grid>;
+        </Card>;
 }
