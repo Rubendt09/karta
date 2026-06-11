@@ -19,6 +19,7 @@ interface EditDocumentModalProps {
   open: boolean;
   onClose: () => void;
   documentId: string;
+  projectId: string;
   onDocumentUpdated: () => void;
 }
 
@@ -26,6 +27,7 @@ export function EditDocumentModal({
   open,
   onClose,
   documentId,
+  projectId,
   onDocumentUpdated,
 }: EditDocumentModalProps) {
   const [document, setDocument] = useState<DocumentResponse | null>(null);
@@ -39,16 +41,16 @@ export function EditDocumentModal({
   const [error, setError] = useState<string | null>(null);
 
   const loadDocument = async () => {
-    if (!documentId) return;
+    if (!documentId || !projectId) return;
     try {
       setLoading(true);
       setError(null);
-      const data = await documentService.getDocumentById(documentId);
+      const data = await documentService.getDocumentById(projectId, documentId);
       setDocument(data);
       setFormData({
         name: data.name,
         priority: data.priority,
-        description: '',
+        description: data.description || '',
       });
     } catch (err) {
       setError('Error al cargar el documento. Por favor, intenta nuevamente.');
@@ -80,7 +82,7 @@ export function EditDocumentModal({
     try {
       setSaving(true);
       setError(null);
-      await documentService.updateDocument(documentId, formData);
+      await documentService.updateDocument(projectId, documentId, formData);
       onDocumentUpdated();
       handleClose();
     } catch (err) {

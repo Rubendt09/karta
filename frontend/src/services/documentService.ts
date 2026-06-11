@@ -14,8 +14,8 @@ export const documentService = {
   },
 
   // Get document by ID
-  getDocumentById: async (id: string): Promise<DocumentResponse> => {
-    const response = await api.get<any>(`/documents/${id}`);
+  getDocumentById: async (projectId: string, id: string): Promise<DocumentResponse> => {
+    const response = await api.get<any>(`/projects/${projectId}/documents/${id}`);
     return response.data.data;
   },
 
@@ -41,21 +41,21 @@ export const documentService = {
   },
 
   // Download document
-  downloadDocument: async (id: string): Promise<Blob> => {
-    const response = await api.get(`/documents/${id}/download`, {
+  downloadDocument: async (projectId: string, id: string): Promise<Blob> => {
+    const response = await api.get(`/projects/${projectId}/documents/${id}/download`, {
       responseType: 'blob',
     });
     return response.data;
   },
 
   // Update document metadata
-  updateDocument: async (id: string, data: UpdateDocumentRequest): Promise<DocumentResponse> => {
-    const response = await api.put<any>(`/documents/${id}`, data);
+  updateDocument: async (projectId: string, id: string, data: UpdateDocumentRequest): Promise<DocumentResponse> => {
+    const response = await api.put<any>(`/projects/${projectId}/documents/${id}`, data);
     return response.data.data;
   },
 
   // Delete document
-  deleteDocument: async (id: string): Promise<void> => {
-    await api.delete(`/documents/${id}`);
+  deleteDocument: async (projectId: string, id: string): Promise<void> => {
+    await api.delete(`/projects/${projectId}/documents/${id}`);
   },
 };

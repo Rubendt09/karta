@@ -19,6 +19,7 @@ import { ProjectStatus, type ProjectResponse } from 'src/types/project';
 import type { UserPermissions } from 'src/types/permission';
 import { ChangeStatusModal } from './change-status-modal';
 import { DeleteProjectModal } from './delete-project-modal';
+import { CreateProjectModal } from './create-project-modal';
 import { DocumentsTab } from './documents-tab';
 import { AccessTab } from './access-tab';
 import { InvitationsTab } from './invitations-tab';
@@ -48,6 +49,7 @@ export function ProjectDetailView() {
   const [tabValue, setTabValue] = useState(0);
   const [changeStatusModalOpen, setChangeStatusModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const loadProject = async () => {
     if (!id) return;
@@ -83,6 +85,11 @@ export function ProjectDetailView() {
 
   const handleProjectDeleted = () => {
     navigate('/projects');
+  };
+
+  const handleProjectUpdated = () => {
+    loadProject();
+    setEditModalOpen(false);
   };
 
   const getStatusColor = (status: ProjectStatus) => {
@@ -166,7 +173,11 @@ export function ProjectDetailView() {
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
           {permissions?.canEdit && (
-            <Button variant="outlined" startIcon={<Iconify icon="solar:pen-bold" />}>
+            <Button
+              variant="outlined"
+              startIcon={<Iconify icon="solar:pen-bold" />}
+              onClick={() => setEditModalOpen(true)}
+            >
               Editar
             </Button>
           )}
@@ -179,11 +190,11 @@ export function ProjectDetailView() {
               Cambiar Estado
             </Button>
           )}
-          {permissions?.canInvite && (
+          {/**permissions?.canInvite && (
             <Button variant="outlined" startIcon={<Iconify icon="solar:users-group-rounded-bold-duotone" />}>
               Gestionar Accesos
             </Button>
-          )}
+          )*/}
           {permissions?.canDelete && (
             <Button
               variant="outlined"
@@ -255,6 +266,17 @@ export function ProjectDetailView() {
           projectId={id}
           projectName={project.name}
           onProjectDeleted={handleProjectDeleted}
+        />
+      )}
+
+      {/* Edit Project Modal */}
+      {id && (
+        <CreateProjectModal
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onProjectCreated={handleProjectUpdated}
+          project={project}
+          isEditMode
         />
       )}
     </Box>

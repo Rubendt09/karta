@@ -13,6 +13,7 @@ public class DocumentResponse {
     private UUID id;
     private UUID projectId;
     private String name;
+    private String description;
     private Long fileSize;
     private String mimeType;
     private UUID uploadedBy;

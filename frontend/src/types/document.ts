@@ -21,6 +21,7 @@ export interface DocumentResponse {
   id: string;
   projectId: string;
   name: string;
+  description?: string;
   fileSize: number;
   mimeType: string;
   uploadedBy: string;

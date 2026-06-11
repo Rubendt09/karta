@@ -25,6 +25,9 @@ public class Document {
     @Column(nullable = false)
     private String name;
     
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
     @Column(name = "file_path_storage", nullable = false)
     private String filePathStorage;
     

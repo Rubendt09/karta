@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,21 +13,34 @@ import {
   Alert,
 } from '@mui/material';
 import { projectService } from 'src/services/projectService';
-import { ProjectStatus, type CreateProjectRequest } from 'src/types/project';
+import { ProjectStatus, type CreateProjectRequest, type UpdateProjectRequest, type ProjectResponse } from 'src/types/project';
 
 interface CreateProjectModalProps {
   open: boolean;
   onClose: () => void;
   onProjectCreated: () => void;
+  project?: ProjectResponse;
+  isEditMode?: boolean;
 }
 
-export function CreateProjectModal({ open, onClose, onProjectCreated }: CreateProjectModalProps) {
+export function CreateProjectModal({ open, onClose, onProjectCreated, project, isEditMode = false }: CreateProjectModalProps) {
   const [formData, setFormData] = useState<CreateProjectRequest>({
     name: '',
     description: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isEditMode && project) {
+      setFormData({
+        name: project.name,
+        description: project.description,
+      });
+    } else {
+      setFormData({ name: '', description: '' });
+    }
+  }, [open, isEditMode, project]);
 
   const handleChange = (field: keyof CreateProjectRequest) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
@@ -58,19 +71,30 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
     try {
       setLoading(true);
       setError(null);
-      await projectService.createProject(formData);
+      if (isEditMode && project) {
+        const updateData: UpdateProjectRequest = {
+          name: formData.name,
+          description: formData.description,
+        };
+        await projectService.updateProject(project.id, updateData);
+      } else {
+        await projectService.createProject(formData);
+      }
       onProjectCreated();
       handleClose();
     } catch (err) {
-      setError('Error al crear el proyecto. Por favor, intenta nuevamente.');
-      console.error('Error creating project:', err);
+      setError(isEditMode ? 'Error al actualizar el proyecto. Por favor, intenta nuevamente.' : 'Error al crear el proyecto. Por favor, intenta nuevamente.');
+      console.error('Error saving project:', err);
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleClose = () => {
-    setFormData({ name: '', description: '' });
+    if (!isEditMode) {
+      setFormData({ name: '', description: '' });
+    }
     setError(null);
     onClose();
   };
@@ -79,7 +103,7 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Crear Nuevo Proyecto</DialogTitle>
+      <DialogTitle>{isEditMode ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
           {error && (
@@ -122,7 +146,7 @@ export function CreateProjectModal({ open, onClose, onProjectCreated }: CreatePr
             Cancelar
           </Button>
           <Button type="submit" variant="contained" disabled={!isValid || loading}>
-            {loading ? <CircularProgress size={20} /> : 'Crear Proyecto'}
+            {loading ? <CircularProgress size={20} /> : (isEditMode ? 'Guardar Cambios' : 'Crear Proyecto')}
           </Button>
         </DialogActions>
       </form>

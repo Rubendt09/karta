@@ -19,6 +19,7 @@ import type { DocumentResponse, Priority } from 'src/types/document';
 import { Priority as PriorityEnum } from 'src/types/document';
 import { UploadDocumentModal } from '../documents/upload-modal';
 import { EditDocumentModal } from '../documents/edit-modal';
+import { DeleteDocumentModal } from '../documents/delete-document-modal';
 
 interface DocumentsTabProps {
   projectId: string;
@@ -32,7 +33,9 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
   const [error, setError] = useState<string | null>(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [selectedDocumentName, setSelectedDocumentName] = useState<string | null>(null);
   const [filterPriority, setFilterPriority] = useState<Priority | 'ALL'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -62,6 +65,10 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
     loadDocuments();
   };
 
+  const handleDocumentDeleted = () => {
+    loadDocuments();
+  };
+
   const handleEditDocument = (documentId: string) => {
     setSelectedDocumentId(documentId);
     setEditModalOpen(true);
@@ -69,7 +76,7 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
 
   const handleDownload = async (documentId: string, documentName: string) => {
     try {
-      const blob = await documentService.downloadDocument(documentId);
+      const blob = await documentService.downloadDocument(projectId, documentId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -83,17 +90,10 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
     }
   };
 
-  const handleDelete = async (documentId: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este documento?')) {
-      return;
-    }
-
-    try {
-      await documentService.deleteDocument(documentId);
-      loadDocuments();
-    } catch (err) {
-      console.error('Error deleting document:', err);
-    }
+  const handleDelete = (documentId: string, documentName: string) => {
+    setSelectedDocumentId(documentId);
+    setSelectedDocumentName(documentName);
+    setDeleteModalOpen(true);
   };
 
   // Filter documents
@@ -268,7 +268,7 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(doc.id)}
+                        onClick={() => handleDelete(doc.id, doc.name)}
                       >
                         <Iconify icon="solar:trash-bin-trash-bold" />
                       </IconButton>
@@ -295,7 +295,20 @@ export function DocumentsTab({ projectId, canEdit, canDelete }: DocumentsTabProp
           open={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           documentId={selectedDocumentId}
+          projectId={projectId}
           onDocumentUpdated={handleDocumentUpdated}
+        />
+      )}
+
+      {/* Delete Modal */}
+      {selectedDocumentId && selectedDocumentName && (
+        <DeleteDocumentModal
+          open={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          projectId={projectId}
+          documentId={selectedDocumentId}
+          documentName={selectedDocumentName}
+          onDocumentDeleted={handleDocumentDeleted}
         />
       )}
     </Box>

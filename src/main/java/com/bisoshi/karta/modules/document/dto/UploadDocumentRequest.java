@@ -11,4 +11,6 @@ public class UploadDocumentRequest {
     private String name;
     
     private Priority priority = Priority.MEDIA;
+    
+    private String description;
 }

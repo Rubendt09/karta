@@ -11,4 +11,6 @@ public class UpdateDocumentRequest {
     private String name;
     
     private Priority priority;
+    
+    private String description;
 }
