@@ -62,4 +62,11 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok(ResponseDto.success(AppConstants.USER_DELETED_SUCCESSFULLY));
     }
+
+    @PutMapping("/{id}/reactivate")
+    @Operation(summary = "Reactivate user", description = "Reactivate a deactivated user")
+    public ResponseEntity<ResponseDto<UserResponse>> reactivateUser(@PathVariable @NonNull UUID id) {
+        UserResponse user = userService.reactivateUser(id);
+        return ResponseEntity.ok(ResponseDto.success(AppConstants.USER_REACTIVATED_SUCCESSFULLY, user));
+    }
 }

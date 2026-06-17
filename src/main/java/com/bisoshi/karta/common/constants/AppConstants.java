@@ -15,6 +15,7 @@ public class AppConstants {
     public static final String USER_CREATED_SUCCESSFULLY = "User created successfully";
     public static final String USER_UPDATED_SUCCESSFULLY = "User updated successfully";
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
+    public static final String USER_REACTIVATED_SUCCESSFULLY = "User reactivated successfully";
     public static final String PROJECT_CREATED_SUCCESSFULLY = "Project created successfully";
     public static final String PROJECT_UPDATED_SUCCESSFULLY = "Project updated successfully";
     public static final String PROJECT_DELETED_SUCCESSFULLY = "Project deleted successfully";

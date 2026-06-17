@@ -78,6 +78,14 @@ public class UserService {
         user.setActive(false);
         userRepository.save(user);
     }
+
+    public UserResponse reactivateUser(@NonNull UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
+        user.setActive(true);
+        user = userRepository.save(user);
+        return mapToUserResponse(user);
+    }
     
     private UserResponse mapToUserResponse(User user) {
         return new UserResponse(
