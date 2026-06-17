@@ -63,6 +63,7 @@ public class DocumentService {
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("null")
     public DocumentResponse getDocumentById(@NonNull UUID id, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
@@ -190,6 +191,7 @@ public class DocumentService {
         documentRepository.delete(document);
     }
 
+    @SuppressWarnings("null")
     public byte[] downloadDocument(@NonNull UUID id, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
