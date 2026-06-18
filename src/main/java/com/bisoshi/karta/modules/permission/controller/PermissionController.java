@@ -5,6 +5,7 @@ import com.bisoshi.karta.common.dto.ResponseDto;
 import com.bisoshi.karta.modules.permission.dto.GrantAccessRequest;
 import com.bisoshi.karta.modules.permission.dto.ProjectAccessResponse;
 import com.bisoshi.karta.modules.permission.dto.UpdateAccessRequest;
+import com.bisoshi.karta.modules.permission.dto.UserPermissionsResponse;
 import com.bisoshi.karta.modules.permission.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,10 +42,10 @@ public class PermissionController {
     }
     
     @GetMapping("/me")
-    @Operation(summary = "Get current user access for a project", description = "Get current user access for a project")
-    public ResponseEntity<ResponseDto<ProjectAccessResponse>> getMyAccess(@PathVariable @NonNull UUID projectId, Authentication authentication) {
-        ProjectAccessResponse access = permissionService.getMyAccess(projectId, authentication);
-        return ResponseEntity.ok(ResponseDto.success("My access retrieved successfully", access));
+    @Operation(summary = "Get current user permissions for a project", description = "Get current user permissions for a project")
+    public ResponseEntity<ResponseDto<UserPermissionsResponse>> getMyPermissions(@PathVariable @NonNull UUID projectId, Authentication authentication) {
+        UserPermissionsResponse permissions = permissionService.getUserPermissions(projectId, authentication);
+        return ResponseEntity.ok(ResponseDto.success("My permissions retrieved successfully", permissions));
     }
     
     @PostMapping

@@ -8,6 +8,7 @@ import com.bisoshi.karta.modules.auth.repository.UserRepository;
 import com.bisoshi.karta.modules.permission.dto.GrantAccessRequest;
 import com.bisoshi.karta.modules.permission.dto.ProjectAccessResponse;
 import com.bisoshi.karta.modules.permission.dto.UpdateAccessRequest;
+import com.bisoshi.karta.modules.permission.dto.UserPermissionsResponse;
 import com.bisoshi.karta.modules.permission.model.ProjectAccess;
 import com.bisoshi.karta.modules.permission.repository.ProjectAccessRepository;
 import com.bisoshi.karta.modules.project.model.Project;
@@ -147,33 +148,73 @@ public class PermissionService {
         return mapToProjectAccessResponse(projectAccess);
     }
     
+    public UserPermissionsResponse getUserPermissions(@NonNull UUID projectId, Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        Role role = getRoleFromAuthentication(authentication);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
+
+        // Si es el owner o admin, retorna permisos completos
+        if (role == Role.ADMIN || project.getOwnerId().equals(userId)) {
+            return new UserPermissionsResponse(
+                    true,  // canView
+                    true,  // canEdit
+                    true,  // canDelete
+                    true,  // canDeprioritize
+                    true,  // canInvite
+                    true   // canGrantAccess
+            );
+        }
+
+        // Si no es owner, busca el acceso específico
+        ProjectAccess projectAccess = projectAccessRepository.findByProjectIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Access not found"));
+
+        // canGrantAccess es true solo si el usuario tiene permiso canInvite
+        // Según la documentación: DAR_QUITAR_ACCESO solo para creador del proyecto
+        return new UserPermissionsResponse(
+                projectAccess.getCanView(),
+                projectAccess.getCanEdit(),
+                projectAccess.getCanDelete(),
+                projectAccess.getCanDeprioritize(),
+                projectAccess.getCanInvite(),
+                false  // canGrantAccess - solo el owner puede dar/quitar accesos
+        );
+    }
+
     public ProjectAccessResponse getMyAccess(@NonNull UUID projectId, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
-        
+
         // Si es el owner o admin, retorna acceso completo
         if (role == Role.ADMIN || project.getOwnerId().equals(userId)) {
+            User currentUser = userRepository.findById(userId).orElse(null);
             return new ProjectAccessResponse(
                     null,
                     projectId,
                     userId,
+                    currentUser != null ? currentUser.getName() : null,
+                    currentUser != null ? currentUser.getEmail() : null,
+                    currentUser != null ? currentUser.getRole().name() : null,
                     true,  // canView
                     true,  // canEdit
                     true,  // canDelete
                     true,  // canDeprioritize
                     true,  // canInvite
                     userId,
+                    currentUser != null ? currentUser.getName() : null,
                     project.getCreatedAt()
             );
         }
-        
+
         // Si no es owner, busca el acceso específico
         ProjectAccess projectAccess = projectAccessRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Access not found"));
-        
+
         return mapToProjectAccessResponse(projectAccess);
     }
     
@@ -198,16 +239,24 @@ public class PermissionService {
     }
     
     private ProjectAccessResponse mapToProjectAccessResponse(ProjectAccess projectAccess) {
+        // Get user information
+        User user = userRepository.findById(projectAccess.getUserId()).orElse(null);
+        User grantedByUser = userRepository.findById(projectAccess.getGrantedBy()).orElse(null);
+
         return new ProjectAccessResponse(
                 projectAccess.getId(),
                 projectAccess.getProjectId(),
                 projectAccess.getUserId(),
+                user != null ? user.getName() : null,
+                user != null ? user.getEmail() : null,
+                user != null ? user.getRole().name() : null,
                 projectAccess.getCanView(),
                 projectAccess.getCanEdit(),
                 projectAccess.getCanDelete(),
                 projectAccess.getCanDeprioritize(),
                 projectAccess.getCanInvite(),
                 projectAccess.getGrantedBy(),
+                grantedByUser != null ? grantedByUser.getName() : null,
                 projectAccess.getGrantedAt()
         );
     }

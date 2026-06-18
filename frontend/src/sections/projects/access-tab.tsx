@@ -30,7 +30,8 @@ export function AccessTab({ projectId, canInvite, canGrantAccess }: AccessTabPro
   const [accessList, setAccessList] = useState<ProjectAccessResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [grantModalOpen, setGrantModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedAccess, setSelectedAccess] = useState<ProjectAccessResponse | null>(null);
 
   const loadAccess = async () => {
     try {
@@ -63,9 +64,15 @@ export function AccessTab({ projectId, canInvite, canGrantAccess }: AccessTabPro
     }
   };
 
-  const handleAccessGranted = () => {
+  const handleEditAccess = (access: ProjectAccessResponse) => {
+    setSelectedAccess(access);
+    setEditModalOpen(true);
+  };
+
+  const handleAccessUpdated = () => {
     loadAccess();
-    setGrantModalOpen(false);
+    setEditModalOpen(false);
+    setSelectedAccess(null);
   };
 
   if (loading) {
@@ -83,15 +90,6 @@ export function AccessTab({ projectId, canInvite, canGrantAccess }: AccessTabPro
         <Typography variant="h6">
           Usuarios con acceso ({accessList.length})
         </Typography>
-        {canInvite && (
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="solar:add-bold" />}
-            onClick={() => setGrantModalOpen(true)}
-          >
-            Otorgar Acceso
-          </Button>
-        )}
       </Box>
 
       {error && (
@@ -162,10 +160,10 @@ export function AccessTab({ projectId, canInvite, canGrantAccess }: AccessTabPro
                     {canGrantAccess && (
                       <IconButton
                         size="small"
-                        color="error"
-                        onClick={() => handleRevokeAccess(access.userId)}
+                        color="primary"
+                        onClick={() => handleEditAccess(access)}
                       >
-                        <Iconify icon="solar:trash-bin-trash-bold" />
+                        <Iconify icon="solar:pen-bold" />
                       </IconButton>
                     )}
                   </TableCell>
@@ -176,12 +174,22 @@ export function AccessTab({ projectId, canInvite, canGrantAccess }: AccessTabPro
         </TableContainer>
       )}
 
-      {/* Grant Access Modal */}
+      {/* Edit Access Modal */}
       <GrantAccessModal
-        open={grantModalOpen}
-        onClose={() => setGrantModalOpen(false)}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
         projectId={projectId}
-        onAccessGranted={handleAccessGranted}
+        onAccessGranted={handleAccessUpdated}
+        userId={selectedAccess?.userId}
+        userName={selectedAccess?.userName}
+        userEmail={selectedAccess?.userEmail}
+        initialPermissions={selectedAccess ? {
+          canView: selectedAccess.canView,
+          canEdit: selectedAccess.canEdit,
+          canDelete: selectedAccess.canDelete,
+          canDeprioritize: selectedAccess.canDeprioritize,
+          canInvite: selectedAccess.canInvite,
+        } : undefined}
       />
     </Box>
   );
