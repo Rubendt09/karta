@@ -63,15 +63,26 @@ public class ProjectService {
     public ProjectResponse getProjectById(@NonNull UUID id, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
-        
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+
+        // Admin can access any project
+        if (role == Role.ADMIN) {
+            return mapToProjectResponse(project);
         }
-        
-        return mapToProjectResponse(project);
+
+        // Owner can access their own project
+        if (project.getOwnerId().equals(userId)) {
+            return mapToProjectResponse(project);
+        }
+
+        // Check if user has access through ProjectAccess
+        if (projectAccessRepository.findByProjectIdAndUserId(id, userId).isPresent()) {
+            return mapToProjectResponse(project);
+        }
+
+        throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
     }
     
     public ProjectResponse createProject(CreateProjectRequest request, Authentication authentication) {
@@ -96,22 +107,39 @@ public class ProjectService {
     public ProjectResponse updateProject(@NonNull UUID id, UpdateProjectRequest request, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
-        
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+
+        // Admin can edit any project
+        if (role == Role.ADMIN) {
+            return updateProjectFields(project, request);
         }
-        
+
+        // Owner can edit their own project
+        if (project.getOwnerId().equals(userId)) {
+            return updateProjectFields(project, request);
+        }
+
+        // Check if user has EDIT permission through ProjectAccess
+        java.util.Optional<com.bisoshi.karta.modules.permission.model.ProjectAccess> projectAccess =
+                projectAccessRepository.findByProjectIdAndUserId(id, userId);
+
+        if (projectAccess.isPresent() && projectAccess.get().getCanEdit()) {
+            return updateProjectFields(project, request);
+        }
+
+        throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+    }
+
+    private ProjectResponse updateProjectFields(Project project, UpdateProjectRequest request) {
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         if (request.getStatus() != null) {
             project.setStatus(request.getStatus());
         }
-        
+
         project = projectRepository.save(project);
-        
         return mapToProjectResponse(project);
     }
     
@@ -119,31 +147,57 @@ public class ProjectService {
     public void deleteProject(@NonNull UUID id, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
-        
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+
+        // Admin can delete any project
+        if (role == Role.ADMIN) {
+            projectRepository.delete(project);
+            return;
         }
-        
-        projectRepository.delete(project);
+
+        // Owner can delete their own project
+        if (project.getOwnerId().equals(userId)) {
+            projectRepository.delete(project);
+            return;
+        }
+
+        // Invited users cannot delete projects (even with DELETE permission)
+        throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
     }
     
     public ProjectResponse updateProjectStatus(@NonNull UUID id, com.bisoshi.karta.modules.project.model.ProjectStatus status, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
-        
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+
+        // Admin can update status of any project
+        if (role == Role.ADMIN) {
+            return updateProjectStatusField(project, status);
         }
-        
+
+        // Owner can update status of their own project
+        if (project.getOwnerId().equals(userId)) {
+            return updateProjectStatusField(project, status);
+        }
+
+        // Check if user has DEPRIORITIZE permission through ProjectAccess
+        java.util.Optional<com.bisoshi.karta.modules.permission.model.ProjectAccess> projectAccess =
+                projectAccessRepository.findByProjectIdAndUserId(id, userId);
+
+        if (projectAccess.isPresent() && projectAccess.get().getCanDeprioritize()) {
+            return updateProjectStatusField(project, status);
+        }
+
+        throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+    }
+
+    private ProjectResponse updateProjectStatusField(Project project, com.bisoshi.karta.modules.project.model.ProjectStatus status) {
         project.setStatus(status);
         project = projectRepository.save(project);
-        
         return mapToProjectResponse(project);
     }
     
