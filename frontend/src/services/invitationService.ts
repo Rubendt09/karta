@@ -3,7 +3,6 @@ import type {
   Invitation,
   InvitationResponse,
   CreateInvitationRequest,
-  AcceptInvitationRequest,
 } from 'src/types/invitation';
 
 export const invitationService = {
@@ -15,18 +14,18 @@ export const invitationService = {
 
   // Create invitation
   createInvitation: async (data: CreateInvitationRequest): Promise<InvitationResponse> => {
-    const response = await api.post<any>('/invitations', data);
+    const response = await api.post<any>(`/projects/${data.projectId}/invitations`, data);
     return response.data.data;
   },
 
   // Accept invitation
-  acceptInvitation: async (id: string, data: AcceptInvitationRequest): Promise<void> => {
-    await api.post(`/invitations/${id}/accept`, data);
+  acceptInvitation: async (projectId: string, id: string): Promise<void> => {
+    await api.post(`/projects/${projectId}/invitations/${id}/accept`);
   },
 
   // Reject invitation
-  rejectInvitation: async (id: string): Promise<void> => {
-    await api.post(`/invitations/${id}/reject`);
+  rejectInvitation: async (projectId: string, id: string): Promise<void> => {
+    await api.post(`/projects/${projectId}/invitations/${id}/reject`);
   },
 
   // Get invitations for a project

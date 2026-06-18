@@ -26,19 +26,37 @@ public class ProjectService {
     
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final com.bisoshi.karta.modules.permission.repository.ProjectAccessRepository projectAccessRepository;
     
     public List<ProjectResponse> getAllProjects(Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
-        
+
         if (role == Role.ADMIN) {
             return projectRepository.findAll().stream()
                     .map(this::mapToProjectResponse)
                     .collect(Collectors.toList());
         }
-        
-        return projectRepository.findByOwnerId(userId).stream()
+
+        // Get projects where user is owner
+        List<ProjectResponse> ownerProjects = projectRepository.findByOwnerId(userId).stream()
                 .map(this::mapToProjectResponse)
+                .collect(Collectors.toList());
+
+        // Get projects where user has access through ProjectAccess
+        List<com.bisoshi.karta.modules.permission.model.ProjectAccess> projectAccessList =
+                projectAccessRepository.findByUserId(userId);
+
+        List<ProjectResponse> accessibleProjects = projectAccessList.stream()
+                .map(access -> projectRepository.findById(access.getProjectId()))
+                .filter(java.util.Optional::isPresent)
+                .map(java.util.Optional::get)
+                .map(this::mapToProjectResponse)
+                .collect(Collectors.toList());
+
+        // Combine both lists and remove duplicates
+        return java.util.stream.Stream.concat(ownerProjects.stream(), accessibleProjects.stream())
+                .distinct()
                 .collect(Collectors.toList());
     }
     

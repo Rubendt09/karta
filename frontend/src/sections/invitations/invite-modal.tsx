@@ -63,7 +63,7 @@ export function InviteModal({ open, onClose, projectId, onInvitationSent }: Invi
         projectId,
         message: message.trim(),
         expirationDays,
-        permissions,
+        ...permissions,
       };
       await invitationService.createInvitation(data);
       onInvitationSent();

@@ -34,10 +34,25 @@ public class Invitation {
     
     @Column(name = "temporary_password")
     private String temporaryPassword;
-    
+
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
-    
+
+    @Column(name = "can_view")
+    private Boolean canView = true;
+
+    @Column(name = "can_edit")
+    private Boolean canEdit = false;
+
+    @Column(name = "can_delete")
+    private Boolean canDelete = false;
+
+    @Column(name = "can_deprioritize")
+    private Boolean canDeprioritize = false;
+
+    @Column(name = "can_invite")
+    private Boolean canInvite = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

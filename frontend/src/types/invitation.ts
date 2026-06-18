@@ -48,13 +48,11 @@ export interface CreateInvitationRequest {
   projectId: string;
   message?: string;
   expirationDays?: number;
-  permissions: {
-    canView: boolean;
-    canEdit: boolean;
-    canDelete: boolean;
-    canDeprioritize: boolean;
-    canInvite: boolean;
-  };
+  canView: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canDeprioritize: boolean;
+  canInvite: boolean;
 }
 
 export interface AcceptInvitationRequest {

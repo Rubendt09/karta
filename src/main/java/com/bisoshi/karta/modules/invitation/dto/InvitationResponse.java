@@ -17,4 +17,9 @@ public class InvitationResponse {
     private InvitationStatus status;
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
+    private Boolean canView;
+    private Boolean canEdit;
+    private Boolean canDelete;
+    private Boolean canDeprioritize;
+    private Boolean canInvite;
 }

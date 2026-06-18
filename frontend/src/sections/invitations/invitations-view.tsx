@@ -59,18 +59,23 @@ export function InvitationsView() {
     setTabValue(newValue);
   };
 
-  const handleAccept = async (invitationId: string) => {
-    // Navigate to register page with token
-    window.location.href = `/register-invited?token=${invitationId}`;
+  const handleAccept = async (projectId: string, invitationId: string) => {
+    try {
+      await invitationService.acceptInvitation(projectId, invitationId);
+      loadInvitations();
+    } catch (err) {
+      console.error('Error accepting invitation:', err);
+      alert('Error al aceptar la invitación. Por favor, intenta nuevamente.');
+    }
   };
 
-  const handleReject = async (invitationId: string) => {
+  const handleReject = async (projectId: string, invitationId: string) => {
     if (!confirm('¿Estás seguro de que deseas rechazar esta invitación?')) {
       return;
     }
 
     try {
-      await invitationService.rejectInvitation(invitationId);
+      await invitationService.rejectInvitation(projectId, invitationId);
       loadInvitations();
     } catch (err) {
       console.error('Error rejecting invitation:', err);
@@ -180,8 +185,8 @@ export function InvitationsView() {
 
 interface InvitationListProps {
   invitations: InvitationResponse[];
-  onAccept?: (id: string) => void;
-  onReject?: (id: string) => void;
+  onAccept?: (projectId: string, id: string) => void;
+  onReject?: (projectId: string, id: string) => void;
 }
 
 function InvitationList({ invitations, onAccept, onReject }: InvitationListProps) {
@@ -275,7 +280,7 @@ function InvitationList({ invitations, onAccept, onReject }: InvitationListProps
                   <Button
                     size="small"
                     variant="contained"
-                    onClick={() => onAccept(invitation.id)}
+                    onClick={() => onAccept(invitation.projectId, invitation.id)}
                     fullWidth
                   >
                     Aceptar
@@ -284,7 +289,7 @@ function InvitationList({ invitations, onAccept, onReject }: InvitationListProps
                     size="small"
                     variant="outlined"
                     color="error"
-                    onClick={() => onReject(invitation.id)}
+                    onClick={() => onReject(invitation.projectId, invitation.id)}
                   >
                     Rechazar
                   </Button>

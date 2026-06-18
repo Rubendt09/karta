@@ -53,23 +53,13 @@ export function InvitationsTab({ projectId, canInvite }: InvitationsTabProps) {
     setInviteModalOpen(false);
   };
 
-  const handleResend = async (invitationId: string) => {
-    try {
-      // TODO: Implement resend invitation API
-      console.log('Resend invitation:', invitationId);
-    } catch (err) {
-      console.error('Error resending invitation:', err);
-    }
-  };
-
   const handleCancel = async (invitationId: string) => {
     if (!confirm('¿Estás seguro de que deseas cancelar esta invitación?')) {
       return;
     }
 
     try {
-      // TODO: Implement cancel invitation API
-      console.log('Cancel invitation:', invitationId);
+      await invitationService.rejectInvitation(projectId, invitationId);
       loadInvitations();
     } catch (err) {
       console.error('Error canceling invitation:', err);
@@ -158,7 +148,7 @@ export function InvitationsTab({ projectId, canInvite }: InvitationsTabProps) {
                 <TableCell>Permisos</TableCell>
                 <TableCell>Enviada por</TableCell>
                 <TableCell>Expira en</TableCell>
-                <TableCell align="right">Acciones</TableCell>
+                <TableCell align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -195,12 +185,11 @@ export function InvitationsTab({ projectId, canInvite }: InvitationsTabProps) {
                         : '-'}
                     </Typography>
                   </TableCell>
-                  <TableCell align="right">
+
+                  {/* Alinear al medio */}
+                  <TableCell align="center">
                     {invitation.status === 'PENDIENTE' && (
                       <>
-                        <IconButton size="small" onClick={() => handleResend(invitation.id)}>
-                          <Iconify icon="solar:restart-bold" />
-                        </IconButton>
                         <IconButton size="small" color="error" onClick={() => handleCancel(invitation.id)}>
                           <Iconify icon="solar:trash-bin-trash-bold" />
                         </IconButton>
