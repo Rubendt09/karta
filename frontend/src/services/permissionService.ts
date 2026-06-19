@@ -26,13 +26,13 @@ export const permissionService = {
     userId: string,
     data: UpdateAccessRequest
   ): Promise<ProjectAccessResponse> => {
-    const response = await api.put<any>(`/projects/${projectId}/access/${userId}`, data);
+    const response = await api.put<any>(`/projects/${projectId}/access/users/${userId}`, data);
     return response.data.data;
   },
 
   // Revoke access
   revokeAccess: async (projectId: string, userId: string): Promise<void> => {
-    await api.delete(`/projects/${projectId}/access/${userId}`);
+    await api.delete(`/projects/${projectId}/access/users/${userId}`);
   },
 
   // Get current user's permissions for a project

@@ -212,8 +212,8 @@ export function ProjectDetailView() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Documentos" />
-          <Tab label="Accesos" />
-          <Tab label="Invitaciones" />
+          {permissions?.canGrantAccess && <Tab label="Accesos" />}
+          {(permissions?.canGrantAccess || permissions?.canInvite) && <Tab label="Invitaciones" />}
         </Tabs>
       </Box>
 
@@ -228,24 +228,24 @@ export function ProjectDetailView() {
         )}
       </TabPanel>
 
-      <TabPanel value={tabValue} index={1}>
-        {permissions && (
+      {permissions?.canGrantAccess && (
+        <TabPanel value={tabValue} index={1}>
           <AccessTab
             projectId={id || ''}
             canInvite={permissions.canInvite}
             canGrantAccess={permissions.canGrantAccess}
           />
-        )}
-      </TabPanel>
+        </TabPanel>
+      )}
 
-      <TabPanel value={tabValue} index={2}>
-        {permissions && (
+      {(permissions?.canGrantAccess || permissions?.canInvite) && (
+        <TabPanel value={tabValue} index={permissions?.canGrantAccess ? 2 : 1}>
           <InvitationsTab
             projectId={id || ''}
             canInvite={permissions.canInvite}
           />
-        )}
-      </TabPanel>
+        </TabPanel>
+      )}
 
       {/* Change Status Modal */}
       {id && (

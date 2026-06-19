@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { permissionService } from 'src/services/permissionService';
 import { PermissionCheckbox } from 'src/components/permission-checkbox';
-import type { GrantAccessRequest } from 'src/types/permission';
+import type { UpdateAccessRequest } from 'src/types/permission';
 
 interface GrantAccessModalProps {
   open: boolean;
@@ -53,6 +53,19 @@ export function GrantAccessModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load initial permissions when modal opens
+  useEffect(() => {
+    if (open && initialPermissions) {
+      setPermissions({
+        canView: initialPermissions.canView,
+        canEdit: initialPermissions.canEdit,
+        canDelete: initialPermissions.canDelete,
+        canDeprioritize: initialPermissions.canDeprioritize,
+        canInvite: initialPermissions.canInvite,
+      });
+    }
+  }, [open, initialPermissions]);
+
   const handlePermissionChange = (permission: keyof typeof permissions, value: boolean) => {
     setPermissions((prev) => ({ ...prev, [permission]: value }));
   };
@@ -71,9 +84,12 @@ export function GrantAccessModal({
     try {
       setLoading(true);
       setError(null);
-      const data: GrantAccessRequest = {
-        userId,
-        ...permissions,
+      const data: UpdateAccessRequest = {
+        canView: permissions.canView,
+        canEdit: permissions.canEdit,
+        canDelete: permissions.canDelete,
+        canDeprioritize: permissions.canDeprioritize,
+        canInvite: permissions.canInvite,
       };
       await permissionService.updateAccess(projectId, userId, data);
       onAccessGranted();
