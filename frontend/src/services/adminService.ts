@@ -7,11 +7,18 @@ export interface DashboardMetrics {
   storageUsed: number;
 }
 
-export interface UserActivity {
+export interface ActivityLog {
+  id: string;
+  timestamp: string;
   userId: string;
-  email: string;
-  actionCount: number;
-  lastActivity: string;
+  userEmail: string;
+  action: string;
+  module: string;
+  entityId: string;
+  entityName: string;
+  description: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface ProjectSummary {
@@ -22,6 +29,14 @@ export interface ProjectSummary {
   createdAt: string;
 }
 
+export type ActivityLogFilters = {
+  startDate?: string;
+  endDate?: string;
+  userId?: string;
+  module?: string;
+  action?: string;
+};
+
 export const adminService = {
   // Get dashboard metrics
   getDashboardMetrics: async (): Promise<DashboardMetrics> => {
@@ -29,15 +44,9 @@ export const adminService = {
     return response.data.data;
   },
 
-  // Get user activity summary
-  getUserActivity: async (): Promise<UserActivity[]> => {
-    const response = await api.get<any>('/admin/activity');
-    return response.data.data;
-  },
-
-  // Get user activity (alias used by audit view)
-  getActivity: async (): Promise<UserActivity[]> => {
-    const response = await api.get<any>('/admin/activity');
+  // Get activity logs with optional filters
+  getActivity: async (filters?: ActivityLogFilters): Promise<ActivityLog[]> => {
+    const response = await api.get<any>('/admin/activity', { params: filters });
     return response.data.data;
   },
 

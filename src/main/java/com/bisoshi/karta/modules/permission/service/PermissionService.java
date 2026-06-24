@@ -2,6 +2,8 @@ package com.bisoshi.karta.modules.permission.service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
+import com.bisoshi.karta.modules.audit.dto.ActivityLogRequest;
+import com.bisoshi.karta.modules.audit.service.ActivityLogService;
 import com.bisoshi.karta.modules.auth.model.Role;
 import com.bisoshi.karta.modules.auth.model.User;
 import com.bisoshi.karta.modules.auth.repository.UserRepository;
@@ -30,6 +32,7 @@ public class PermissionService {
     private final ProjectAccessRepository projectAccessRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final ActivityLogService activityLogService;
     
     public List<ProjectAccessResponse> getProjectAccesses(@NonNull UUID projectId, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
@@ -47,6 +50,7 @@ public class PermissionService {
                 .collect(Collectors.toList());
     }
     
+    @SuppressWarnings("null")
     public ProjectAccessResponse grantAccess(@NonNull UUID projectId, GrantAccessRequest request, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
@@ -73,6 +77,17 @@ public class PermissionService {
         projectAccess.setGrantedBy(userId);
         
         projectAccess = projectAccessRepository.save(projectAccess);
+
+        User grantedUser = userRepository.findById(request.getUserId()).orElse(null);
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(userId)
+                .userEmail(authentication.getName())
+                .action("GRANT")
+                .module("PERMISSION")
+                .entityId(projectAccess.getId())
+                .entityName(project.getName())
+                .description("Otorgó acceso al proyecto '" + project.getName() + "' a " + (grantedUser != null ? grantedUser.getEmail() : request.getUserId()))
+                .build());
         
         return mapToProjectAccessResponse(projectAccess);
     }
@@ -109,6 +124,17 @@ public class PermissionService {
         }
         
         projectAccess = projectAccessRepository.save(projectAccess);
+
+        User targetUser = userRepository.findById(userId).orElse(null);
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(currentUserId)
+                .userEmail(authentication.getName())
+                .action("UPDATE")
+                .module("PERMISSION")
+                .entityId(projectAccess.getId())
+                .entityName(project.getName())
+                .description("Modificó permisos de " + (targetUser != null ? targetUser.getEmail() : userId) + " en el proyecto '" + project.getName() + "'")
+                .build());
         
         return mapToProjectAccessResponse(projectAccess);
     }
@@ -127,6 +153,17 @@ public class PermissionService {
         
         ProjectAccess projectAccess = projectAccessRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Access not found"));
+
+        User targetUser = userRepository.findById(userId).orElse(null);
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(currentUserId)
+                .userEmail(authentication.getName())
+                .action("REVOKE")
+                .module("PERMISSION")
+                .entityId(projectAccess.getId())
+                .entityName(project.getName())
+                .description("Revocó acceso al proyecto '" + project.getName() + "' de " + (targetUser != null ? targetUser.getEmail() : userId))
+                .build());
         
         projectAccessRepository.delete(projectAccess);
     }

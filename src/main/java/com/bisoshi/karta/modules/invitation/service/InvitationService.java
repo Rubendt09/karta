@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
+import com.bisoshi.karta.modules.audit.dto.ActivityLogRequest;
+import com.bisoshi.karta.modules.audit.service.ActivityLogService;
 import com.bisoshi.karta.modules.auth.model.Role;
 import com.bisoshi.karta.modules.auth.model.User;
 import com.bisoshi.karta.modules.auth.repository.UserRepository;
@@ -36,6 +38,7 @@ public class InvitationService {
     private final ProjectAccessRepository projectAccessRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ActivityLogService activityLogService;
 
     public List<InvitationResponse> getProjectInvitations(@NonNull UUID projectId, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
@@ -107,6 +110,16 @@ public class InvitationService {
             // TODO: Enviar email notificando que fue invitado al proyecto
             System.out.println("Invitation sent to existing user " + request.getEmail());
 
+            activityLogService.log(ActivityLogRequest.builder()
+                    .userId(userId)
+                    .userEmail(authentication.getName())
+                    .action("INVITE")
+                    .module("INVITATION")
+                    .entityId(invitation.getId())
+                    .entityName(request.getEmail())
+                    .description("Invitó al usuario " + request.getEmail() + " al proyecto '" + project.getName() + "'")
+                    .build());
+
             return mapToInvitationResponse(invitation);
         } else {
             // User doesn't exist - create new user with random password
@@ -140,10 +153,21 @@ public class InvitationService {
             // TODO: Enviar email con la contraseña temporal
             System.out.println("New user created. Password for " + request.getEmail() + ": " + randomPassword);
 
+            activityLogService.log(ActivityLogRequest.builder()
+                    .userId(userId)
+                    .userEmail(authentication.getName())
+                    .action("INVITE")
+                    .module("INVITATION")
+                    .entityId(invitation.getId())
+                    .entityName(request.getEmail())
+                    .description("Invitó y creó al usuario " + request.getEmail() + " para el proyecto '" + project.getName() + "'")
+                    .build());
+
             return mapToInvitationResponse(invitation);
         }
     }
 
+    @SuppressWarnings("null")
     public InvitationResponse acceptInvitation(@NonNull UUID id, Authentication authentication) {
         Invitation invitation = invitationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invitation not found"));
@@ -183,6 +207,18 @@ public class InvitationService {
         invitation.setStatus(InvitationStatus.ACEPTADA);
         invitationRepository.save(invitation);
 
+        Project project = projectRepository.findById(invitation.getProjectId())
+                .orElse(null);
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(user.getId())
+                .userEmail(email)
+                .action("ACCEPT")
+                .module("INVITATION")
+                .entityId(invitation.getId())
+                .entityName(invitation.getEmail())
+                .description("Aceptó la invitación al proyecto '" + (project != null ? project.getName() : invitation.getProjectId()) + "'")
+                .build());
+
         return mapToInvitationResponse(invitation);
     }
 
@@ -203,6 +239,16 @@ public class InvitationService {
 
         invitation.setStatus(InvitationStatus.RECHAZADA);
         invitationRepository.save(invitation);
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(userId)
+                .userEmail(authentication.getName())
+                .action("REJECT")
+                .module("INVITATION")
+                .entityId(invitation.getId())
+                .entityName(invitation.getEmail())
+                .description("Rechazó la invitación de " + invitation.getEmail() + " al proyecto '" + project.getName() + "'")
+                .build());
     }
 
     private boolean canManageInvitations(Project project, UUID userId, Role role) {

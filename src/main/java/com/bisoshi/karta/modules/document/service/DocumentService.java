@@ -2,6 +2,8 @@ package com.bisoshi.karta.modules.document.service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
+import com.bisoshi.karta.modules.audit.dto.ActivityLogRequest;
+import com.bisoshi.karta.modules.audit.service.ActivityLogService;
 import com.bisoshi.karta.modules.auth.model.Role;
 import com.bisoshi.karta.modules.auth.model.User;
 import com.bisoshi.karta.modules.auth.repository.UserRepository;
@@ -38,6 +40,7 @@ public class DocumentService {
     private final ProjectRepository projectRepository;
     private final ProjectAccessRepository projectAccessRepository;
     private final UserRepository userRepository;
+    private final ActivityLogService activityLogService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
@@ -121,6 +124,16 @@ public class DocumentService {
 
             document = documentRepository.save(document);
 
+            activityLogService.log(ActivityLogRequest.builder()
+                    .userId(userId)
+                    .userEmail(authentication.getName())
+                    .action("CREATE")
+                    .module("DOCUMENT")
+                    .entityId(document.getId())
+                    .entityName(document.getName())
+                    .description("Subió el documento '" + document.getName() + "' al proyecto '" + project.getName() + "'")
+                    .build());
+
             return mapToDocumentResponse(document);
         } catch (IOException e) {
             throw new RuntimeException("Failed to upload file", e);
@@ -158,6 +171,16 @@ public class DocumentService {
 
         document = documentRepository.save(document);
 
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(userId)
+                .userEmail(authentication.getName())
+                .action("UPDATE")
+                .module("DOCUMENT")
+                .entityId(document.getId())
+                .entityName(document.getName())
+                .description("Editó el documento '" + document.getName() + "' en el proyecto '" + project.getName() + "'")
+                .build());
+
         return mapToDocumentResponse(document);
     }
 
@@ -187,6 +210,16 @@ public class DocumentService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete file", e);
         }
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(userId)
+                .userEmail(authentication.getName())
+                .action("DELETE")
+                .module("DOCUMENT")
+                .entityId(document.getId())
+                .entityName(document.getName())
+                .description("Eliminó el documento '" + document.getName() + "' del proyecto '" + project.getName() + "'")
+                .build());
 
         documentRepository.delete(document);
     }

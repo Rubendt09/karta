@@ -2,6 +2,7 @@ package com.bisoshi.karta.modules.auth.service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
+import com.bisoshi.karta.modules.audit.service.ActivityLogService;
 import com.bisoshi.karta.modules.auth.dto.RegisterRequest;
 import com.bisoshi.karta.modules.auth.dto.UserResponse;
 import com.bisoshi.karta.modules.auth.model.User;
@@ -22,6 +23,7 @@ public class UserService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ActivityLogService activityLogService;
     
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -48,6 +50,9 @@ public class UserService {
         user.setActive(true);
         
         user = userRepository.save(user);
+
+        activityLogService.logCurrentUser("CREATE", "USER", user.getId(), user.getName(),
+                "Creó el usuario " + user.getEmail() + " con rol " + user.getRole());
         
         return mapToUserResponse(user);
     }
@@ -68,6 +73,9 @@ public class UserService {
         user.setRole(request.getRole());
         
         user = userRepository.save(user);
+
+        activityLogService.logCurrentUser("UPDATE", "USER", user.getId(), user.getName(),
+                "Actualizó el usuario " + user.getEmail());
         
         return mapToUserResponse(user);
     }
@@ -77,6 +85,9 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
         user.setActive(false);
         userRepository.save(user);
+
+        activityLogService.logCurrentUser("DELETE", "USER", user.getId(), user.getName(),
+                "Desactivó el usuario " + user.getEmail());
     }
 
     public UserResponse reactivateUser(@NonNull UUID id) {
@@ -84,6 +95,10 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.USER_NOT_FOUND));
         user.setActive(true);
         user = userRepository.save(user);
+
+        activityLogService.logCurrentUser("UPDATE", "USER", user.getId(), user.getName(),
+                "Reactivó el usuario " + user.getEmail());
+
         return mapToUserResponse(user);
     }
     

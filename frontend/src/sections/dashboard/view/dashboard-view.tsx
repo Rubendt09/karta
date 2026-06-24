@@ -22,10 +22,9 @@ import { Iconify } from 'src/components/iconify';
 import { fNumber } from 'src/utils/format-number';
 
 import { AnalyticsCurrentVisits } from '../analytics-current-visits';
-import { AnalyticsWebsiteVisits } from '../analytics-website-visits';
 import { AnalyticsWidgetSummary } from '../analytics-widget-summary';
 
-import type { DashboardMetrics, ProjectSummary, UserActivity } from 'src/services/adminService';
+import type { ActivityLog, DashboardMetrics, ProjectSummary } from 'src/services/adminService';
 
 // ----------------------------------------------------------------------
 
@@ -40,7 +39,7 @@ function formatBytes(bytes: number): string {
 export function DashboardView() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [userActivity, setUserActivity] = useState<UserActivity[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [projectSummary, setProjectSummary] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +51,11 @@ export function DashboardView() {
         setError(null);
         const [metricsData, activityData, projectsData] = await Promise.all([
           adminService.getDashboardMetrics(),
-          adminService.getUserActivity(),
+          adminService.getActivity(),
           adminService.getProjectSummary(),
         ]);
         setMetrics(metricsData);
-        setUserActivity(activityData);
+        setActivityLogs(activityData);
         setProjectSummary(projectsData);
       } catch (err) {
         setError('Error al cargar el dashboard. Por favor, intenta nuevamente.');
@@ -69,13 +68,7 @@ export function DashboardView() {
     loadDashboard();
   }, []);
 
-  const topUsers = useMemo(
-    () =>
-      [...userActivity]
-        .sort((a, b) => b.actionCount - a.actionCount)
-        .slice(0, 10),
-    [userActivity]
-  );
+  const recentActivity = useMemo(() => activityLogs.slice(0, 10), [activityLogs]);
 
   const topProjects = useMemo(
     () =>
@@ -83,16 +76,6 @@ export function DashboardView() {
         .sort((a, b) => b.documentCount - a.documentCount)
         .slice(0, 5),
     [projectSummary]
-  );
-
-  const activityChartData = useMemo(
-    () => ({
-      categories: topUsers.map((u) => u.email.split('@')[0]),
-      series: [
-        { name: 'Acciones', data: topUsers.map((u) => u.actionCount) },
-      ],
-    }),
-    [topUsers]
   );
 
   const projectsChartData = useMemo(
@@ -169,17 +152,48 @@ export function DashboardView() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-          {topUsers.length > 0 ? (
-            <AnalyticsWebsiteVisits
-              title="Actividad de usuarios"
-              subheader="Top 10 usuarios por número de acciones"
-              chart={activityChartData}
-            />
-          ) : (
-            <Card sx={{ height: 480, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography color="text.secondary">No hay actividad de usuarios para mostrar</Typography>
-            </Card>
-          )}
+          <Card sx={{ height: 480 }}>
+            <CardHeader title="Actividad reciente" subheader="Últimas acciones registradas" />
+            <TableContainer component={Paper} sx={{ boxShadow: 'none', maxHeight: 380 }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Usuario</TableCell>
+                    <TableCell>Acción</TableCell>
+                    <TableCell>Descripción</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {recentActivity.map((log) => (
+                    <TableRow key={log.id} hover>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {new Date(log.timestamp).toLocaleString('es-ES')}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">{log.userEmail}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">{log.action}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">{log.description}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {recentActivity.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                        No hay actividad reciente
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>

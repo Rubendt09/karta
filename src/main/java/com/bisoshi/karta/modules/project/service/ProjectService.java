@@ -2,6 +2,8 @@ package com.bisoshi.karta.modules.project.service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.exception.ResourceNotFoundException;
+import com.bisoshi.karta.modules.audit.dto.ActivityLogRequest;
+import com.bisoshi.karta.modules.audit.service.ActivityLogService;
 import com.bisoshi.karta.modules.auth.model.Role;
 import com.bisoshi.karta.modules.auth.model.User;
 import com.bisoshi.karta.modules.auth.repository.UserRepository;
@@ -27,6 +29,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final com.bisoshi.karta.modules.permission.repository.ProjectAccessRepository projectAccessRepository;
+    private final ActivityLogService activityLogService;
     
     @SuppressWarnings("null")
     public List<ProjectResponse> getAllProjects(Authentication authentication) {
@@ -101,6 +104,16 @@ public class ProjectService {
         project.setStatus(com.bisoshi.karta.modules.project.model.ProjectStatus.ACTIVO);
         
         project = projectRepository.save(project);
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(userId)
+                .userEmail(authentication.getName())
+                .action("CREATE")
+                .module("PROJECT")
+                .entityId(project.getId())
+                .entityName(project.getName())
+                .description("Creó el proyecto '" + project.getName() + "'")
+                .build());
         
         return mapToProjectResponse(project);
     }
@@ -114,12 +127,12 @@ public class ProjectService {
 
         // Admin can edit any project
         if (role == Role.ADMIN) {
-            return updateProjectFields(project, request);
+            return updateProjectFields(project, request, authentication);
         }
 
         // Owner can edit their own project
         if (project.getOwnerId().equals(userId)) {
-            return updateProjectFields(project, request);
+            return updateProjectFields(project, request, authentication);
         }
 
         // Check if user has EDIT permission through ProjectAccess
@@ -127,13 +140,13 @@ public class ProjectService {
                 projectAccessRepository.findByProjectIdAndUserId(id, userId);
 
         if (projectAccess.isPresent() && projectAccess.get().getCanEdit()) {
-            return updateProjectFields(project, request);
+            return updateProjectFields(project, request, authentication);
         }
 
         throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
     }
 
-    private ProjectResponse updateProjectFields(Project project, UpdateProjectRequest request) {
+    private ProjectResponse updateProjectFields(Project project, UpdateProjectRequest request, Authentication authentication) {
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         if (request.getStatus() != null) {
@@ -141,6 +154,17 @@ public class ProjectService {
         }
 
         project = projectRepository.save(project);
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(getUserIdFromAuthentication(authentication))
+                .userEmail(authentication.getName())
+                .action("UPDATE")
+                .module("PROJECT")
+                .entityId(project.getId())
+                .entityName(project.getName())
+                .description("Editó el proyecto '" + project.getName() + "'")
+                .build());
+
         return mapToProjectResponse(project);
     }
     
@@ -154,18 +178,32 @@ public class ProjectService {
 
         // Admin can delete any project
         if (role == Role.ADMIN) {
+            logProjectDelete(project, authentication);
             projectRepository.delete(project);
             return;
         }
 
         // Owner can delete their own project
         if (project.getOwnerId().equals(userId)) {
+            logProjectDelete(project, authentication);
             projectRepository.delete(project);
             return;
         }
 
         // Invited users cannot delete projects (even with DELETE permission)
         throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
+    }
+
+    private void logProjectDelete(Project project, Authentication authentication) {
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(getUserIdFromAuthentication(authentication))
+                .userEmail(authentication.getName())
+                .action("DELETE")
+                .module("PROJECT")
+                .entityId(project.getId())
+                .entityName(project.getName())
+                .description("Eliminó el proyecto '" + project.getName() + "'")
+                .build());
     }
     
     public ProjectResponse updateProjectStatus(@NonNull UUID id, com.bisoshi.karta.modules.project.model.ProjectStatus status, Authentication authentication) {
@@ -177,12 +215,12 @@ public class ProjectService {
 
         // Admin can update status of any project
         if (role == Role.ADMIN) {
-            return updateProjectStatusField(project, status);
+            return updateProjectStatusField(project, status, authentication);
         }
 
         // Owner can update status of their own project
         if (project.getOwnerId().equals(userId)) {
-            return updateProjectStatusField(project, status);
+            return updateProjectStatusField(project, status, authentication);
         }
 
         // Check if user has DEPRIORITIZE permission through ProjectAccess
@@ -190,15 +228,26 @@ public class ProjectService {
                 projectAccessRepository.findByProjectIdAndUserId(id, userId);
 
         if (projectAccess.isPresent() && projectAccess.get().getCanDeprioritize()) {
-            return updateProjectStatusField(project, status);
+            return updateProjectStatusField(project, status, authentication);
         }
 
         throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
     }
 
-    private ProjectResponse updateProjectStatusField(Project project, com.bisoshi.karta.modules.project.model.ProjectStatus status) {
+    private ProjectResponse updateProjectStatusField(Project project, com.bisoshi.karta.modules.project.model.ProjectStatus status, Authentication authentication) {
         project.setStatus(status);
         project = projectRepository.save(project);
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(getUserIdFromAuthentication(authentication))
+                .userEmail(authentication.getName())
+                .action("STATUS_CHANGE")
+                .module("PROJECT")
+                .entityId(project.getId())
+                .entityName(project.getName())
+                .description("Cambió estado del proyecto '" + project.getName() + "' a " + status.name())
+                .build());
+
         return mapToProjectResponse(project);
     }
     
