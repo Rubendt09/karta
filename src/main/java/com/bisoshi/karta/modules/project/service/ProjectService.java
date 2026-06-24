@@ -28,6 +28,7 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final com.bisoshi.karta.modules.permission.repository.ProjectAccessRepository projectAccessRepository;
     
+    @SuppressWarnings("null")
     public List<ProjectResponse> getAllProjects(Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);

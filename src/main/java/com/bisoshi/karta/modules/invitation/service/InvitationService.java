@@ -44,7 +44,7 @@ public class InvitationService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
 
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
+        if (!canManageInvitations(project, userId, role)) {
             throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
         }
 
@@ -68,7 +68,7 @@ public class InvitationService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
 
-        if (role != Role.ADMIN && !project.getOwnerId().equals(userId)) {
+        if (!canManageInvitations(project, userId, role)) {
             throw new IllegalArgumentException(AppConstants.PROJECT_ACCESS_DENIED);
         }
 
@@ -186,18 +186,32 @@ public class InvitationService {
         return mapToInvitationResponse(invitation);
     }
 
+    @SuppressWarnings("null")
     public void rejectInvitation(@NonNull UUID id, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
+        Role role = getRoleFromAuthentication(authentication);
 
         Invitation invitation = invitationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invitation not found"));
 
-        if (!invitation.getInvitedBy().equals(userId)) {
+        Project project = projectRepository.findById(invitation.getProjectId())
+                .orElseThrow(() -> new ResourceNotFoundException(AppConstants.PROJECT_NOT_FOUND));
+
+        if (!canManageInvitations(project, userId, role) && !invitation.getInvitedBy().equals(userId)) {
             throw new IllegalArgumentException(AppConstants.ACCESS_DENIED);
         }
 
         invitation.setStatus(InvitationStatus.RECHAZADA);
         invitationRepository.save(invitation);
+    }
+
+    private boolean canManageInvitations(Project project, UUID userId, Role role) {
+        if (role == Role.ADMIN || project.getOwnerId().equals(userId)) {
+            return true;
+        }
+        return projectAccessRepository.findByProjectIdAndUserId(project.getId(), userId)
+                .map(ProjectAccess::getCanInvite)
+                .orElse(false);
     }
 
     private String generateRandomPassword(int length) {

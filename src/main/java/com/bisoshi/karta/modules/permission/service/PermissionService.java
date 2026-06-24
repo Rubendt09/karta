@@ -183,6 +183,7 @@ public class PermissionService {
         );
     }
 
+    @SuppressWarnings("null")
     public ProjectAccessResponse getMyAccess(@NonNull UUID projectId, Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
@@ -238,6 +239,8 @@ public class PermissionService {
                 .orElse(Role.INVITADO);
     }
     
+    
+    @SuppressWarnings("null")
     private ProjectAccessResponse mapToProjectAccessResponse(ProjectAccess projectAccess) {
         // Get user information
         User user = userRepository.findById(projectAccess.getUserId()).orElse(null);

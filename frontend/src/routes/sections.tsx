@@ -9,6 +9,7 @@ import { varAlpha } from 'src/utils/styles';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
 import { AuthGuard } from 'src/components/auth-guard';
+import { RoleGuard } from 'src/components/role-guard';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
@@ -86,12 +87,24 @@ export const routesSection: RouteObject[] = [
       </AuthGuard>
     ),
     children: [
-      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'dashboard', element: (
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <DashboardPage />
+        </RoleGuard>
+      ) },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'invitations', element: <InvitationsPage /> },
-      { path: 'users', element: <UsersPage /> },
-      { path: 'audit', element: <AuditPage /> },
+      { path: 'users', element: (
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <UsersPage />
+        </RoleGuard>
+      ) },
+      { path: 'audit', element: (
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <AuditPage />
+        </RoleGuard>
+      ) },
     ],
   },
   {

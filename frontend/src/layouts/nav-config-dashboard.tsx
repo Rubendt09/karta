@@ -1,6 +1,7 @@
-import { Label } from 'src/components/label';
+import { useMemo } from 'react';
+
 import { SvgColor } from 'src/components/svg-color';
-import { InvitationsPage } from 'src/routes/sections';
+import { useAuth } from 'src/context/AuthContext';
 
 // ----------------------------------------------------------------------
 
@@ -11,13 +12,15 @@ export type NavItem = {
   path: string;
   icon: React.ReactNode;
   info?: React.ReactNode;
+  roles?: string[];
 };
 
-export const navData = [
+const allNavItems: NavItem[] = [
   {
     title: 'Dashboard',
     path: '/',
     icon: icon('solar--widget-5-linear'),
+    roles: ['ADMIN'],
   },
   {
     title: 'Mis proyectos',
@@ -33,23 +36,28 @@ export const navData = [
     title: 'Gestión de Usuarios',
     path: '/users',
     icon: icon('solar--users-group-two-rounded-linear'),
+    roles: ['ADMIN'],
   },
   {
     title: 'Auditoría de actividad',
     path: '/audit',
     icon: icon('solar--users-group-two-rounded-linear'),
+    roles: ['ADMIN'],
   },
 ];
 
-{
-  /**
-    title: 'Sign in',
-    path: '/sign-in',
-    icon: icon('ic-lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic-disabled'),
-   */
-}
+export const useNavData = (): NavItem[] => {
+  const { user } = useAuth();
+  const userRole = user?.role;
+
+  return useMemo(
+    () =>
+      allNavItems.filter((item) => {
+        if (!item.roles || item.roles.length === 0) {
+          return true;
+        }
+        return Boolean(userRole && item.roles.includes(userRole));
+      }),
+    [userRole]
+  );
+};
