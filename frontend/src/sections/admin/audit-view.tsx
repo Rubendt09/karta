@@ -11,16 +11,14 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  TextField,
-  MenuItem,
 } from '@mui/material';
 import { adminService } from 'src/services/adminService';
+import type { UserActivity } from 'src/services/adminService';
 
 export function AuditView() {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionFilter, setActionFilter] = useState<string>('ALL');
 
   const loadLogs = async () => {
     try {
@@ -40,20 +38,11 @@ export function AuditView() {
     loadLogs();
   }, []);
 
-  const getActionColor = (action: string) => {
-    switch (action) {
-      case 'CREATE':
-        return 'success';
-      case 'UPDATE':
-        return 'info';
-      case 'DELETE':
-        return 'error';
-      default:
-        return 'default';
-    }
+  const getActivityColor = (actionCount: number) => {
+    if (actionCount === 0) return 'default';
+    if (actionCount < 10) return 'warning';
+    return 'success';
   };
-
-  const filteredLogs = actionFilter === 'ALL' ? logs : logs.filter((l) => l.action === actionFilter);
 
   if (loading) {
     return (
@@ -75,61 +64,44 @@ export function AuditView() {
         </Alert>
       )}
 
-      {/* Filter */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          select
-          size="small"
-          label="Filtrar por acción"
-          value={actionFilter}
-          onChange={(e) => setActionFilter(e.target.value)}
-          sx={{ width: 200 }}
-        >
-          <MenuItem value="ALL">Todas las acciones</MenuItem>
-          <MenuItem value="CREATE">Crear</MenuItem>
-          <MenuItem value="UPDATE">Actualizar</MenuItem>
-          <MenuItem value="DELETE">Eliminar</MenuItem>
-        </TextField>
-      </Box>
-
-      {/* Logs Table */}
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Usuario</TableCell>
-              <TableCell>Acción</TableCell>
-              <TableCell>Entidad</TableCell>
-              <TableCell>Descripción</TableCell>
-              <TableCell>Fecha</TableCell>
+              <TableCell align="right">Acciones</TableCell>
+              <TableCell>Última actividad</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredLogs.map((log) => (
-              <TableRow key={log.id}>
+            {logs.map((log) => (
+              <TableRow key={log.userId}>
                 <TableCell>
-                  <Typography variant="body2">{log.userName}</Typography>
+                  <Typography variant="body2">{log.email}</Typography>
                 </TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <Chip
-                    label={log.action}
+                    label={log.actionCount}
                     size="small"
-                    color={getActionColor(log.action) as any}
+                    color={getActivityColor(log.actionCount) as any}
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2">{log.entity}</Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">{log.description}</Typography>
-                </TableCell>
-                <TableCell>
                   <Typography variant="body2">
-                    {new Date(log.timestamp).toLocaleString('es-ES')}
+                    {log.lastActivity
+                      ? new Date(log.lastActivity).toLocaleString('es-ES')
+                      : 'Sin actividad'}
                   </Typography>
                 </TableCell>
               </TableRow>
             ))}
+            {logs.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={3} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                  No hay registros de actividad
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>

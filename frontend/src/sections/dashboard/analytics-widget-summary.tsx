@@ -18,14 +18,15 @@ import { Chart, useChart } from 'src/components/chart';
 type Props = CardProps & {
   title: string;
   total: number;
-  percent: number;
+  percent?: number;
   color?: PaletteColorKey;
   icon: React.ReactNode;
-  chart: {
+  chart?: {
     series: number[];
     categories: string[];
     options?: ChartOptions;
   };
+  formatTotal?: (value: number) => string;
 };
 
 export function AnalyticsWidgetSummary({
@@ -36,16 +37,18 @@ export function AnalyticsWidgetSummary({
   chart,
   percent,
   color = 'primary',
+  formatTotal,
   ...other
 }: Props) {
   const theme = useTheme();
 
+  const hasChart = Boolean(chart && chart.series.length > 0);
   const chartColors = [theme.palette[color].dark];
 
   const chartOptions = useChart({
     chart: { sparkline: { enabled: true } },
     colors: chartColors,
-    xaxis: { categories: chart.categories },
+    xaxis: { categories: chart?.categories },
     grid: {
       padding: {
         top: 6,
@@ -60,27 +63,32 @@ export function AnalyticsWidgetSummary({
     markers: {
       strokeWidth: 0,
     },
-    ...chart.options,
+    ...chart?.options,
   });
 
-  const renderTrending = () => (
-    <Box
-      sx={{
-        top: 16,
-        gap: 0.5,
-        right: 16,
-        display: 'flex',
-        position: 'absolute',
-        alignItems: 'center',
-      }}
-    >
-      <Iconify width={20} icon={percent < 0 ? 'eva:trending-down-fill' : 'eva:trending-up-fill'} />
-      <Box component="span" sx={{ typography: 'subtitle2' }}>
-        {percent > 0 && '+'}
-        {fPercent(percent)}
+  const renderTrending = () => {
+    if (percent === undefined || percent === null) {
+      return null;
+    }
+    return (
+      <Box
+        sx={{
+          top: 16,
+          gap: 0.5,
+          right: 16,
+          display: 'flex',
+          position: 'absolute',
+          alignItems: 'center',
+        }}
+      >
+        <Iconify width={20} icon={percent < 0 ? 'eva:trending-down-fill' : 'eva:trending-up-fill'} />
+        <Box component="span" sx={{ typography: 'subtitle2' }}>
+          {percent > 0 && '+'}
+          {fPercent(percent)}
+        </Box>
       </Box>
-    </Box>
-  );
+    );
+  };
 
   return (
     <Card
@@ -112,15 +120,17 @@ export function AnalyticsWidgetSummary({
         <Box sx={{ flexGrow: 1, minWidth: 112 }}>
           <Box sx={{ mb: 1, typography: 'subtitle2' }}>{title}</Box>
 
-          <Box sx={{ typography: 'h4' }}>{fShortenNumber(total)}</Box>
+          <Box sx={{ typography: 'h4' }}>{formatTotal ? formatTotal(total) : fShortenNumber(total)}</Box>
         </Box>
 
-        <Chart
-          type="line"
-          series={[{ data: chart.series }]}
-          options={chartOptions}
-          sx={{ width: 84, height: 56 }}
-        />
+        {hasChart && (
+          <Chart
+            type="line"
+            series={[{ data: chart!.series }]}
+            options={chartOptions}
+            sx={{ width: 84, height: 56 }}
+          />
+        )}
       </Box>
 
       <SvgColor

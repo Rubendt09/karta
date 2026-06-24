@@ -5,36 +5,21 @@ export interface DashboardMetrics {
   totalProjects: number;
   totalDocuments: number;
   storageUsed: number;
-  storageLimit: number;
 }
 
 export interface UserActivity {
   userId: string;
-  userName: string;
+  email: string;
   actionCount: number;
   lastActivity: string;
 }
 
 export interface ProjectSummary {
   projectId: string;
-  projectName: string;
+  name: string;
   documentCount: number;
   accessCount: number;
-  lastActivity: string;
-}
-
-export interface ActivityLog {
-  id: string;
-  timestamp: string;
-  userId: string;
-  userName: string;
-  action: string;
-  module: string;
-  details?: {
-    ip?: string;
-    userAgent?: string;
-    parameters?: Record<string, any>;
-  };
+  createdAt: string;
 }
 
 export const adminService = {
@@ -44,21 +29,15 @@ export const adminService = {
     return response.data.data;
   },
 
-  // Get activity logs
-  getActivity: async (filters?: {
-    startDate?: string;
-    endDate?: string;
-    userId?: string;
-    action?: string;
-    module?: string;
-  }): Promise<ActivityLog[]> => {
-    const response = await api.get<any>('/admin/activity', { params: filters });
+  // Get user activity summary
+  getUserActivity: async (): Promise<UserActivity[]> => {
+    const response = await api.get<any>('/admin/activity');
     return response.data.data;
   },
 
-  // Get user activity summary
-  getUserActivity: async (): Promise<UserActivity[]> => {
-    const response = await api.get<any>('/admin/users/activity');
+  // Get user activity (alias used by audit view)
+  getActivity: async (): Promise<UserActivity[]> => {
+    const response = await api.get<any>('/admin/activity');
     return response.data.data;
   },
 
