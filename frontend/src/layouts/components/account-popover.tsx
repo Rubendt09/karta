@@ -15,12 +15,16 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 import { useRouter, usePathname } from 'src/routes/hooks';
 import { useAuth } from 'src/context/AuthContext';
 
+import { ProfileModal } from './profile-modal';
+import { ChangePasswordModal } from './change-password-modal';
+
 // ----------------------------------------------------------------------
 
 export type AccountPopoverProps = IconButtonProps & {
   data?: {
     label: string;
     href: string;
+    action?: 'profile' | 'change-password';
     icon?: React.ReactNode;
     info?: React.ReactNode;
   }[];
@@ -33,6 +37,8 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   const pathname = usePathname();
 
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
+  const [openProfileModal, setOpenProfileModal] = useState(false);
+  const [openChangePasswordModal, setOpenChangePasswordModal] = useState(false);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setOpenPopover(event.currentTarget);
@@ -43,8 +49,16 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
   }, []);
 
   const handleClickItem = useCallback(
-    (path: string) => {
+    (path: string, action?: 'profile' | 'change-password') => {
       handleClosePopover();
+      if (action === 'profile') {
+        setOpenProfileModal(true);
+        return;
+      }
+      if (action === 'change-password') {
+        setOpenChangePasswordModal(true);
+        return;
+      }
       router.push(path);
     },
     [handleClosePopover, router]
@@ -99,7 +113,7 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/*<MenuList
+        <MenuList
           disablePadding
           sx={{
             p: 1,
@@ -124,13 +138,13 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
             <MenuItem
               key={option.label}
               selected={option.href === pathname}
-              onClick={() => handleClickItem(option.href)}
+              onClick={() => handleClickItem(option.href, option.action)}
             >
               {option.icon}
               {option.label}
             </MenuItem>
           ))}
-        </MenuList>*/}
+        </MenuList>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
@@ -140,6 +154,12 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
           </Button>
         </Box>
       </Popover>
+
+      <ProfileModal open={openProfileModal} onClose={() => setOpenProfileModal(false)} />
+      <ChangePasswordModal
+        open={openChangePasswordModal}
+        onClose={() => setOpenChangePasswordModal(false)}
+      />
     </>
   );
 }

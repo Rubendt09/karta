@@ -1,9 +1,11 @@
 package com.bisoshi.karta.modules.auth.service;
 
 import com.bisoshi.karta.common.constants.AppConstants;
+import com.bisoshi.karta.modules.auth.dto.ChangePasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginResponse;
 import com.bisoshi.karta.modules.auth.dto.RegisterInvitedRequest;
+import com.bisoshi.karta.modules.auth.dto.UpdateProfileRequest;
 import com.bisoshi.karta.modules.auth.dto.UserResponse;
 import com.bisoshi.karta.modules.auth.model.Role;
 import com.bisoshi.karta.modules.auth.model.User;
@@ -13,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -62,6 +66,56 @@ public class AuthService {
         return mapToUserResponse(user);
     }
     
+    public UserResponse getCurrentUser() {
+        User user = getAuthenticatedUser();
+        return mapToUserResponse(user);
+    }
+
+    public UserResponse updateCurrentUser(UpdateProfileRequest request) {
+        User user = getAuthenticatedUser();
+
+        if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException(AppConstants.EMAIL_ALREADY_EXISTS);
+        }
+
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user = userRepository.save(user);
+
+        return mapToUserResponse(user);
+    }
+
+    public void changePassword(ChangePasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException(AppConstants.PASSWORDS_DO_NOT_MATCH);
+        }
+
+        User user = getAuthenticatedUser();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException(AppConstants.CURRENT_PASSWORD_INCORRECT);
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    private User getAuthenticatedUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadCredentialsException(AppConstants.USER_NOT_FOUND);
+        }
+        Object principal = authentication.getPrincipal();
+        String email;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException(AppConstants.USER_NOT_FOUND));
+    }
+
     private String generateRandomPassword(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         SecureRandom random = new SecureRandom();

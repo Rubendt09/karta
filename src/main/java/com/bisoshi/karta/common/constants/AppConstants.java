@@ -16,6 +16,10 @@ public class AppConstants {
     public static final String USER_UPDATED_SUCCESSFULLY = "User updated successfully";
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
     public static final String USER_REACTIVATED_SUCCESSFULLY = "User reactivated successfully";
+    public static final String PASSWORD_CHANGED_SUCCESSFULLY = "Password changed successfully";
+    public static final String PASSWORDS_DO_NOT_MATCH = "New password and confirmation do not match";
+    public static final String CURRENT_PASSWORD_INCORRECT = "Current password is incorrect";
+    public static final String PROFILE_UPDATED_SUCCESSFULLY = "Profile updated successfully";
     public static final String PROJECT_CREATED_SUCCESSFULLY = "Project created successfully";
     public static final String PROJECT_UPDATED_SUCCESSFULLY = "Project updated successfully";
     public static final String PROJECT_DELETED_SUCCESSFULLY = "Project deleted successfully";

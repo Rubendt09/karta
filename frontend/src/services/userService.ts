@@ -1,10 +1,11 @@
 import api from './api';
 import type {
-  User,
   UserResponse,
   CreateUserRequest,
   UpdateUserRequest,
   RegisterInvitedRequest,
+  ChangePasswordRequest,
+  UpdateProfileRequest,
 } from 'src/types/user';
 
 export const userService = {
@@ -47,5 +48,22 @@ export const userService = {
   registerInvited: async (data: RegisterInvitedRequest): Promise<UserResponse> => {
     const response = await api.post<any>('/auth/register-invited', data);
     return response.data.data;
+  },
+
+  // Get current authenticated user profile
+  getCurrentUser: async (): Promise<UserResponse> => {
+    const response = await api.get<any>('/auth/me');
+    return response.data.data;
+  },
+
+  // Update current authenticated user profile
+  updateCurrentUser: async (data: UpdateProfileRequest): Promise<UserResponse> => {
+    const response = await api.put<any>('/auth/me', data);
+    return response.data.data;
+  },
+
+  // Change current authenticated user's password
+  changePassword: async (data: ChangePasswordRequest): Promise<void> => {
+    await api.put<any>('/auth/change-password', data);
   },
 };

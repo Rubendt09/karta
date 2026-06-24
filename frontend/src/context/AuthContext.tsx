@@ -1,8 +1,9 @@
 import type { UserInfo } from 'src/services/authService';
 
-import { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 
 import { authService } from 'src/services/authService';
+import { userService } from 'src/services/userService';
 
 // ----------------------------------------------------------------------
 
@@ -10,6 +11,7 @@ interface AuthContextType {
   user: UserInfo | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -41,15 +43,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   };
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await userService.getCurrentUser();
+      const userData = {
+        userId: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        role: currentUser.role,
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      throw error;
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
       login,
       logout,
+      refreshUser,
       isAuthenticated: !!user,
       loading,
     }),
-    [user, loading]
+    [user, loading, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
