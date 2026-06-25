@@ -24,6 +24,7 @@ export const ProjectsPage = lazy(() => import('src/pages/projects'));
 export const ProjectDetailPage = lazy(() => import('src/pages/project-detail'));
 export const InvitationsPage = lazy(() => import('src/pages/invitations'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
+export const Page500 = lazy(() => import('src/pages/internal-server-error'));
 
 const renderFallback = () => (
   <Box
@@ -110,6 +111,10 @@ export const routesSection: RouteObject[] = [
   {
     path: '404',
     element: <Page404 />,
+  },
+  {
+    path: '500',
+    element: <Page500 />,
   },
   { path: '*', element: <Page404 /> },
 ];

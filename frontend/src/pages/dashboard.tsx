@@ -10,7 +10,7 @@ export default function Page() {
       <title>{`Dashboard - ${CONFIG.appName}`}</title>
       <meta
         name="description"
-        content="SCO es un sistema de gestión integral para la clinica Gismondi que optimiza la administración de pacientes, citas y expedientes médicos."
+        content="Karta es un sistema de gestión documental que organiza archivos en proyectos seguros, con control de accesos, permisos granulares y colaboración entre asesores e invitados."
       />
       <meta name="keywords" content="react,material,kit,application,dashboard,admin,template" />
 

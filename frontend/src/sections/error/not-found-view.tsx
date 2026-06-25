@@ -25,12 +25,11 @@ export function NotFoundView() {
         }}
       >
         <Typography variant="h3" sx={{ mb: 2 }}>
-          Sorry, page not found!
+          Perdón, no se encontró la página.
         </Typography>
 
         <Typography sx={{ color: 'text.secondary', maxWidth: 480, textAlign: 'center' }}>
-          Sorry, we couldn’t find the page you’re looking for. Perhaps you’ve mistyped the URL? Be
-          sure to check your spelling.
+          Perdón, no se encontró la página que estás buscando. Tal vez escribiste mal la URL? Asegúrate de verificar la ortografía.
         </Typography>
 
         <Box
@@ -44,7 +43,7 @@ export function NotFoundView() {
         />
 
         <Button component={RouterLink} href="/" size="large" variant="contained" color="inherit">
-          Go to home
+          Ir a la página de inicio
         </Button>
       </Container>
     </>
