@@ -7,7 +7,6 @@ import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
 import { useBoolean } from 'src/hooks';
-import { _langs, _notifications } from 'src/_mock';
 
 import { NavMobile, NavDesktop } from './nav';
 import { layoutClasses } from '../core/classes';
@@ -79,7 +78,7 @@ export function DashboardLayout({
           <Searchbar />*/}
 
           {/** @slot Notifications popover */}
-          <NotificationsPopover data={_notifications} />
+          {/*<NotificationsPopover data={_notifications} />/*}
 
           {/** @slot Account drawer */}
           <AccountPopover data={_account} />
