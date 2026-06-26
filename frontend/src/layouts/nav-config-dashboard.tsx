@@ -30,7 +30,7 @@ const allNavItems: NavItem[] = [
   {
     title: 'Mis invitaciones',
     path: '/invitations',
-    icon: icon('solar--users-group-two-rounded-linear'),
+    icon: icon('solar--user-plus-broken'),
   },
   {
     title: 'Gestión de Usuarios',
@@ -41,7 +41,7 @@ const allNavItems: NavItem[] = [
   {
     title: 'Auditoría de actividad',
     path: '/audit',
-    icon: icon('solar--users-group-two-rounded-linear'),
+    icon: icon('solar--round-graph-outline'),
     roles: ['ADMIN'],
   },
 ];
