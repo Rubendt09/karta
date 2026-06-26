@@ -136,6 +136,12 @@ export function SignInView() {
           mb: 5,
         }}
       >
+        <Box
+          component="img"
+          src="/assets/images/app-name-logo.png"
+          alt="Karta"
+          sx={{ width: 'auto', height: 120, mb: 1, alignSelf: 'center' }}
+        />
         <Typography variant="h5">Iniciar sesión</Typography>
         <Typography
           variant="body2"

@@ -105,8 +105,8 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Logo />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
+        <Logo sx={{ width: 180, height: 74 }} />
       </Box>
 
       {slots?.topArea}
