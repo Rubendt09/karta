@@ -139,7 +139,6 @@ public class PermissionService {
         return mapToProjectAccessResponse(projectAccess);
     }
     
-    @SuppressWarnings("null")
     public void revokeAccess(@NonNull UUID projectId, @NonNull UUID userId, Authentication authentication) {
         UUID currentUserId = getUserIdFromAuthentication(authentication);
         Role role = getRoleFromAuthentication(authentication);
