@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { Iconify } from 'src/components/iconify';
 import { documentService } from 'src/services/documentService';
+import { chatService } from 'src/services/chatService';
 import type { DocumentResponse } from 'src/types/document';
 
 // ----------------------------------------------------------------------
@@ -35,12 +36,37 @@ interface ChatMessage {
 
 // ----------------------------------------------------------------------
 
+const renderMarkdown = (text: string): ReactNode => {
+  const lines = text.split('\n');
+  return lines.map((line, lineIndex) => {
+    const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    const elements = parts.map((part, partIndex) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={partIndex}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('*') && part.endsWith('*')) {
+        return <em key={partIndex}>{part.slice(1, -1)}</em>;
+      }
+      return <span key={partIndex}>{part}</span>;
+    });
+    return (
+      <span key={lineIndex}>
+        {elements}
+        {lineIndex < lines.length - 1 && <br />}
+      </span>
+    );
+  });
+};
+
+// ----------------------------------------------------------------------
+
 export function ProjectChat({ projectId, projectName, open, onClose }: ProjectChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [documents, setDocuments] = useState<DocumentResponse[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState<DocumentResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -85,7 +111,7 @@ export function ProjectChat({ projectId, projectName, open, onClose }: ProjectCh
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = inputText.trim();
     if (!trimmed && selectedTags.length === 0) return;
 
@@ -97,22 +123,48 @@ export function ProjectChat({ projectId, projectName, open, onClose }: ProjectCh
       createdAt: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const botMessageId = `bot-${Date.now()}`;
+    const botMessage: ChatMessage = {
+      id: botMessageId,
+      sender: 'bot',
+      text: '',
+      createdAt: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage, botMessage]);
     setInputText('');
     setSelectedTags([]);
+    setIsLoading(true);
 
-    // Placeholder bot response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-${Date.now()}`,
-          sender: 'bot',
-          text: 'Entiendo. Estoy procesando tu solicitud sobre este proyecto.',
-          createdAt: new Date(),
-        },
-      ]);
-    }, 600);
+    const history = messages
+      .filter((m) => m.id !== 'welcome')
+      .slice(-10)
+      .map((m) => ({ role: m.sender, content: m.text }));
+
+    const documentIds = selectedTags.map((tag) => tag.id);
+
+    await chatService.sendMessage({
+      projectId,
+      message: trimmed,
+      documentIds,
+      history,
+      onText: (chunk) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === botMessageId ? { ...m, text: m.text + chunk } : m))
+        );
+      },
+      onComplete: () => {
+        setIsLoading(false);
+      },
+      onError: (error) => {
+        setIsLoading(false);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMessageId ? { ...m, text: `Error al obtener respuesta: ${error}` } : m
+          )
+        );
+      },
+    });
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -241,8 +293,16 @@ export function ProjectChat({ projectId, projectName, open, onClose }: ProjectCh
                 }}
               >
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {message.text}
+                  {message.sender === 'bot' ? renderMarkdown(message.text) : message.text}
                 </Typography>
+                {message.sender === 'bot' && isLoading && message.text === '' && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="caption" color="text.secondary">
+                      Pensando...
+                    </Typography>
+                  </Box>
+                )}
                 {message.tags && message.tags.length > 0 && (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
                     {message.tags.map((tag) => (
@@ -340,7 +400,7 @@ export function ProjectChat({ projectId, projectName, open, onClose }: ProjectCh
 
           <IconButton
             onClick={handleSend}
-            disabled={!inputText.trim() && selectedTags.length === 0}
+            disabled={(!inputText.trim() && selectedTags.length === 0) || isLoading}
             sx={{ minWidth: 0, borderRadius: 1.5 }}
           >
             <Iconify icon="solar:plain-2-bold" width={30} height={30} />

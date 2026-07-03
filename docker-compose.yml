@@ -20,6 +20,8 @@ services:
     container_name: karta-app
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/karta_db
       SPRING_DATASOURCE_USERNAME: karta_user
