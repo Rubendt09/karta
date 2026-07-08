@@ -1,6 +1,6 @@
 # Planificación Scrum basada en el sistema existente (Karta)
 
-Este documento reconstruye un plan de desarrollo en 6 Sprints (incluye un Sprint 0 de análisis previo), estrictamente alineado con las funcionalidades y la arquitectura realmente implementadas en el proyecto para los Sprints 1–5. No se han asumido características inexistentes.
+Este documento reconstruye un plan de desarrollo en 7 Sprints (incluye un Sprint 0 de análisis previo), estrictamente alineado con las funcionalidades y la arquitectura realmente implementadas en el proyecto para los Sprints 1–6. No se han asumido características inexistentes.
 
 Cada Sprint incluye: Objetivo, Historias de Usuario, Funcionalidades, Tareas técnicas, Entregables, Justificación del orden y el Incremento de Producto.
 
@@ -274,6 +274,50 @@ Cada Sprint incluye: Objetivo, Historias de Usuario, Funcionalidades, Tareas té
 
 ---
 
+## Sprint 6 — Chat de Proyecto (IA con contexto de documentos vía SSE)
+
+- **Objetivo del Sprint**
+  Habilitar un asistente de IA por proyecto que responda en flujo continuo (SSE) usando como contexto los documentos seleccionados del proyecto y el historial reciente de la conversación, respetando permisos.
+
+- **Historias de Usuario**
+  - Como usuario con acceso de visualización a un proyecto, quiero hacer preguntas sobre sus documentos, para obtener respuestas rápidas y contextualizadas.
+  - Como colaborador, quiero seleccionar qué documentos usar como base, para orientar la respuesta de la IA.
+  - Como administrador/owner, quiero que el chat respete los permisos (canView) y no exponga información de otros proyectos, para mantener seguridad y confidencialidad.
+
+- **Funcionalidades desarrolladas**
+  - Endpoint de chat por proyecto con respuesta en streaming (SSE) y grounding en documentos seleccionados: `POST /api/v1/projects/{projectId}/chat` (`text/event-stream`).
+  - Validación de acceso por proyecto: ADMIN/owner o `ProjectAccess.canView` obligatorio.
+  - Construcción de contexto: prompt del sistema, historial reciente y adjuntos de documentos (cargados a Gemini y referenciados por URI).
+  - Frontend: panel lateral de chat en detalle de proyecto, selección de documentos (chips), envío de mensaje y render de respuesta incremental con soporte de markdown básico (negrita/itálica).
+
+- **Tareas técnicas**
+  - Backend
+    - Controlador: `ChatController` (`/api/v1/projects/{projectId}/chat`, `POST`, produce `text/event-stream`).
+    - Servicio: `ChatService` (`chat`) con:
+      - `validateProjectAccess` (ADMIN/owner o `ProjectAccess.canView`).
+      - Construcción de input: prompt del sistema, `history` (`ChatHistoryEntry`), `documentIds` → lectura local y carga en Gemini (`GeminiClient.getOrUploadFile`).
+      - Emisión de eventos SSE: `text`, `complete`, `error`.
+    - Cliente IA: `GeminiClient` (subida de archivos con API Gemini y `interactions` en SSE), caché local de URIs (`CachedGeminiFile`, TTL ~48h).
+    - DTOs: `ChatMessageRequest`, `ChatHistoryEntry`.
+    - Configuración: `application.properties` (`gemini.api.key`, `gemini.api.base-url`, `gemini.model.default`, `file.upload-dir`).
+  - Frontend
+    - Servicio: `chatService.ts` (fetch al endpoint, parseo manual de SSE con `onText`/`onComplete`/`onError`).
+    - UI: `ProjectChat` (panel lateral, selección de documentos, historial acotado a ~10 mensajes, markdown básico) integrado en `ProjectDetailView` con burbuja flotante.
+    - Reutilización de `documentService.getDocumentsByProject` para poblar documentos seleccionables.
+
+- **Entregables**
+  - Asistente de proyecto operativo con respuestas en streaming y grounding en documentos seleccionados.
+  - Validación de permisos en backend y selección explícita de documentos en frontend.
+  - Configuración de Gemini documentada y parametrizada por entorno.
+
+- **Incremento de Producto**
+  - Capacidad de Q&A contextual por proyecto, acelerando la consulta y comprensión de la documentación existente.
+
+- **Justificación del orden**
+  - Depende de módulos previos: proyectos, permisos (ACL) y documentos. Se incorpora tras el gobierno básico (admin/auditoría) para aprovechar datos y garantizar seguridad.
+
+---
+
 ## Tabla resumen
 
 | Sprint | Objetivo | Módulos implementados | Resultado |
@@ -284,6 +328,7 @@ Cada Sprint incluye: Objetivo, Historias de Usuario, Funcionalidades, Tareas té
 | 3 | Proyectos (CRUD) + base ACL | `project` y base `permission` (modelo/repo) | Gestión de proyectos lista y estructura ACL preparada |
 | 4 | Permisos (ACL) y Documentos | `permission`, `document` | Colaboración controlada y repositorio documental por proyecto |
 | 5 | Invitaciones y Panel Admin | `invitation`, `admin` (dashboard, activity) | Flujo de invitaciones completo y gobierno del sistema |
+| 6 | Chat de Proyecto (IA + SSE) | `chat` (controller, service, client), `frontend` (ProjectChat, chatService) | Q&A contextual por proyecto con respuestas en streaming |
 
 ---
 
@@ -309,3 +354,4 @@ Cada Sprint incluye: Objetivo, Historias de Usuario, Funcionalidades, Tareas té
 - Sprint 3: Gestión de proyectos con control por rol/propiedad y base de ACL persistida.
 - Sprint 4: Colaboración controlada por proyecto (ACL) y gestión documental completa.
 - Sprint 5: Invitaciones para sumar colaboradores y panel administrativo con métricas y exploración de actividad.
+- Sprint 6: Asistente de chat por proyecto con SSE y grounding en documentos seleccionados.
