@@ -1,0 +1,8 @@
+{
+  "name": "karta-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "sse-chat": "node sse-chat.js"
+  }
+}

@@ -251,6 +251,7 @@ public class InvitationService {
                 .build());
     }
 
+    @SuppressWarnings("null")
     private boolean canManageInvitations(Project project, UUID userId, Role role) {
         if (role == Role.ADMIN || project.getOwnerId().equals(userId)) {
             return true;

@@ -24,6 +24,7 @@ import { CreateProjectModal } from './create-project-modal';
 import { DocumentsTab } from './documents-tab';
 import { AccessTab } from './access-tab';
 import { InvitationsTab } from './invitations-tab';
+import { IncidentsTab } from './incidents-tab';
 import { ProjectChat } from './project-chat';
 
 interface TabPanelProps {
@@ -217,6 +218,7 @@ export function ProjectDetailView() {
           <Tab label="Documentos" />
           {permissions?.canGrantAccess && <Tab label="Accesos" />}
           {(permissions?.canGrantAccess || permissions?.canInvite) && <Tab label="Invitaciones" />}
+          <Tab label="Incidentes" />
         </Tabs>
       </Box>
 
@@ -249,6 +251,15 @@ export function ProjectDetailView() {
           />
         </TabPanel>
       )}
+
+      <TabPanel
+        value={tabValue}
+        index={(permissions?.canGrantAccess ? 1 : 0) + (permissions?.canInvite ? 1 : 0) + 1}
+      >
+        {permissions && (
+          <IncidentsTab projectId={id || ''} canEdit={permissions.canEdit} />
+        )}
+      </TabPanel>
 
       {/* Change Status Modal */}
       {id && (

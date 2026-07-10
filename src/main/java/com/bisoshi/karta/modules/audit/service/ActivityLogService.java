@@ -46,6 +46,7 @@ public class ActivityLogService {
         activityLogRepository.save(log);
     }
 
+    @SuppressWarnings("null")
     public void logCurrentUser(String action, String module, UUID entityId, String entityName, String description) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = null;
