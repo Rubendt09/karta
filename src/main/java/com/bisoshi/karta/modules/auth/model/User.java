@@ -40,6 +40,12 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Boolean active = true;
     
+    @Column(name = "reset_code")
+    private String resetCode;
+    
+    @Column(name = "reset_code_expires_at")
+    private LocalDateTime resetCodeExpiresAt;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

@@ -17,6 +17,11 @@ public class AppConstants {
     public static final String USER_DELETED_SUCCESSFULLY = "User deleted successfully";
     public static final String USER_REACTIVATED_SUCCESSFULLY = "User reactivated successfully";
     public static final String PASSWORD_CHANGED_SUCCESSFULLY = "Password changed successfully";
+    public static final String PASSWORD_RESET_CODE_SENT = "Código de recuperación generado correctamente";
+    public static final String PASSWORD_RESET_CODE_VERIFIED = "Código de recuperación verificado correctamente";
+    public static final String PASSWORD_RESET_SUCCESSFULLY = "Contraseña restablecida correctamente";
+    public static final String INVALID_OR_EXPIRED_RESET_CODE = "El código de recuperación es inválido o ha expirado";
+    public static final String USER_INACTIVE = "La cuenta de usuario se encuentra desactivada";
     public static final String PASSWORDS_DO_NOT_MATCH = "New password and confirmation do not match";
     public static final String CURRENT_PASSWORD_INCORRECT = "Current password is incorrect";
     public static final String PROFILE_UPDATED_SUCCESSFULLY = "Profile updated successfully";
@@ -30,7 +35,12 @@ public class AppConstants {
     public static final String INVITATION_ACCEPTED_SUCCESSFULLY = "Invitation accepted successfully";
     public static final String ACCESS_GRANTED_SUCCESSFULLY = "Access granted successfully";
     public static final String ACCESS_REVOKED_SUCCESSFULLY = "Access revoked successfully";
-    
+
+    public static final String SURVEY_NOT_FOUND = "Survey not found";
+    public static final String SURVEY_ALREADY_COMPLETED = "Survey has already been completed";
+    public static final String SURVEY_CREATED_SUCCESSFULLY = "Survey created successfully";
+    public static final String SURVEY_SUBMITTED_SUCCESSFULLY = "Survey submitted successfully";
+
     private AppConstants() {
     }
 }

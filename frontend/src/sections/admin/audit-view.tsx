@@ -23,6 +23,7 @@ import type { UserResponse } from 'src/types/user';
 
 const MODULES = [
   { value: '', label: 'Todos los módulos' },
+  { value: 'AUTH', label: 'Autenticación' },
   { value: 'PROJECT', label: 'Proyecto' },
   { value: 'DOCUMENT', label: 'Documento' },
   { value: 'PERMISSION', label: 'Permiso' },
@@ -32,6 +33,10 @@ const MODULES = [
 
 const ACTIONS = [
   { value: '', label: 'Todas las acciones' },
+  { value: 'LOGIN', label: 'Iniciar sesión' },
+  { value: 'PASSWORD_RESET_REQUEST', label: 'Solicitar recuperación' },
+  { value: 'PASSWORD_RESET', label: 'Restablecer contraseña' },
+  { value: 'PASSWORD_CHANGE', label: 'Cambiar contraseña' },
   { value: 'CREATE', label: 'Crear' },
   { value: 'UPDATE', label: 'Actualizar' },
   { value: 'DELETE', label: 'Eliminar' },
@@ -108,15 +113,19 @@ export function AuditView() {
       case 'CREATE':
       case 'GRANT':
       case 'ACCEPT':
+      case 'LOGIN':
         return 'success';
       case 'UPDATE':
       case 'STATUS_CHANGE':
+      case 'PASSWORD_CHANGE':
+      case 'PASSWORD_RESET':
         return 'info';
       case 'DELETE':
       case 'REVOKE':
       case 'REJECT':
         return 'error';
       case 'INVITE':
+      case 'PASSWORD_RESET_REQUEST':
         return 'warning';
       default:
         return 'default';

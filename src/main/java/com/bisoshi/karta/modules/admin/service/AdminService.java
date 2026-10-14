@@ -3,6 +3,8 @@ package com.bisoshi.karta.modules.admin.service;
 import com.bisoshi.karta.modules.admin.dto.DashboardMetrics;
 import com.bisoshi.karta.modules.admin.dto.ProjectSummary;
 import com.bisoshi.karta.modules.admin.dto.UserActivity;
+import com.bisoshi.karta.modules.audit.model.ActivityLog;
+import com.bisoshi.karta.modules.audit.repository.ActivityLogRepository;
 import com.bisoshi.karta.modules.auth.repository.UserRepository;
 import com.bisoshi.karta.modules.document.repository.DocumentRepository;
 import com.bisoshi.karta.modules.permission.repository.ProjectAccessRepository;
@@ -10,6 +12,7 @@ import com.bisoshi.karta.modules.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,7 @@ public class AdminService {
     private final ProjectRepository projectRepository;
     private final DocumentRepository documentRepository;
     private final ProjectAccessRepository projectAccessRepository;
+    private final ActivityLogRepository activityLogRepository;
     
     public DashboardMetrics getDashboardMetrics() {
         DashboardMetrics metrics = new DashboardMetrics();
@@ -34,14 +38,19 @@ public class AdminService {
     }
     
     public List<UserActivity> getUserActivity() {
-        // Simplified implementation - in a real system, this would query an activity log
         return userRepository.findAll().stream()
-                .map(user -> new UserActivity(
-                        user.getId(),
-                        user.getEmail(),
-                        0L,
-                        user.getUpdatedAt()
-                ))
+                .map(user -> {
+                    List<ActivityLog> userLogs = activityLogRepository.findByUserIdOrderByTimestampDesc(user.getId());
+                    LocalDateTime lastActivity = userLogs.isEmpty()
+                            ? user.getUpdatedAt()
+                            : userLogs.get(0).getTimestamp();
+                    return new UserActivity(
+                            user.getId(),
+                            user.getEmail(),
+                            (long) userLogs.size(),
+                            lastActivity
+                    );
+                })
                 .collect(Collectors.toList());
     }
     

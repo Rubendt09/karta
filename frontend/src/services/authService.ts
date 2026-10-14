@@ -20,6 +20,13 @@ export interface LoginResponse {
   role: string;
 }
 
+export interface ResetPasswordPayload {
+  email: string;
+  code: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const authService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
     const response = await api.post<any>('/auth/login', { email, password });
@@ -71,4 +78,16 @@ export const authService = {
   },
 
   isAuthenticated: (): boolean => !!localStorage.getItem('token'),
+
+  forgotPassword: async (email: string): Promise<void> => {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  verifyResetCode: async (email: string, code: string): Promise<void> => {
+    await api.post('/auth/verify-reset-code', { email, code });
+  },
+
+  resetPassword: async (payload: ResetPasswordPayload): Promise<void> => {
+    await api.post('/auth/reset-password', payload);
+  },
 };

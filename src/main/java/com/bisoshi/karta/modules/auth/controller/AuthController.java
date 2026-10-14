@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bisoshi.karta.common.constants.AppConstants;
 import com.bisoshi.karta.common.dto.ResponseDto;
 import com.bisoshi.karta.modules.auth.dto.ChangePasswordRequest;
+import com.bisoshi.karta.modules.auth.dto.ForgotPasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginResponse;
 import com.bisoshi.karta.modules.auth.dto.RegisterInvitedRequest;
+import com.bisoshi.karta.modules.auth.dto.ResetPasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.UpdateProfileRequest;
 import com.bisoshi.karta.modules.auth.dto.UserResponse;
+import com.bisoshi.karta.modules.auth.dto.VerifyResetCodeRequest;
 import com.bisoshi.karta.modules.auth.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,5 +71,29 @@ public class AuthController {
             @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(request);
         return ResponseEntity.ok(ResponseDto.success(AppConstants.PASSWORD_CHANGED_SUCCESSFULLY));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password recovery code", description = "Generate a random recovery code and print it to the application console")
+    public ResponseEntity<ResponseDto<Void>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(ResponseDto.success(AppConstants.PASSWORD_RESET_CODE_SENT));
+    }
+
+    @PostMapping("/verify-reset-code")
+    @Operation(summary = "Verify password recovery code", description = "Verify that the recovery code for the given email is valid and not expired")
+    public ResponseEntity<ResponseDto<Void>> verifyResetCode(
+            @Valid @RequestBody VerifyResetCodeRequest request) {
+        authService.verifyResetCode(request);
+        return ResponseEntity.ok(ResponseDto.success(AppConstants.PASSWORD_RESET_CODE_VERIFIED));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with recovery code", description = "Reset user password using the recovery code printed to console")
+    public ResponseEntity<ResponseDto<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ResponseDto.success(AppConstants.PASSWORD_RESET_SUCCESSFULLY));
     }
 }
