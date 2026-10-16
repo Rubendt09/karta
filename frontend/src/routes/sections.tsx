@@ -23,6 +23,8 @@ export const RegisterInvitedPage = lazy(() => import('src/pages/register-invited
 export const ProjectsPage = lazy(() => import('src/pages/projects'));
 export const ProjectDetailPage = lazy(() => import('src/pages/project-detail'));
 export const InvitationsPage = lazy(() => import('src/pages/invitations'));
+export const SurveyPage = lazy(() => import('src/pages/survey'));
+export const AdminSurveysPage = lazy(() => import('src/pages/admin-surveys'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const Page500 = lazy(() => import('src/pages/internal-server-error'));
 
@@ -96,6 +98,7 @@ export const routesSection: RouteObject[] = [
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'invitations', element: <InvitationsPage /> },
+      { path: 'surveys/:assignmentId', element: <SurveyPage /> },
       { path: 'users', element: (
         <RoleGuard allowedRoles={['ADMIN']}>
           <UsersPage />
@@ -104,6 +107,11 @@ export const routesSection: RouteObject[] = [
       { path: 'audit', element: (
         <RoleGuard allowedRoles={['ADMIN']}>
           <AuditPage />
+        </RoleGuard>
+      ) },
+      { path: 'admin/surveys', element: (
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <AdminSurveysPage />
         </RoleGuard>
       ) },
     ],

@@ -1,10 +1,12 @@
 import type { IconButtonProps } from '@mui/material/IconButton';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import Badge from '@mui/material/Badge';
+import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Divider from '@mui/material/Divider';
@@ -21,6 +23,9 @@ import { fToNow } from 'src/utils/format-time';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+
+import { surveyService } from 'src/services/surveyService';
+import { SurveyStatus, type SurveyAssignment } from 'src/types/survey';
 
 // ----------------------------------------------------------------------
 
@@ -39,15 +44,32 @@ export type NotificationsPopoverProps = IconButtonProps & {
 };
 
 export function NotificationsPopover({ data = [], sx, ...other }: NotificationsPopoverProps) {
+  const navigate = useNavigate();
+
   const [notifications, setNotifications] = useState(data);
+  const [surveys, setSurveys] = useState<SurveyAssignment[]>([]);
 
   const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
+  const pendingSurveys = surveys.filter((s) => s.status === SurveyStatus.PENDIENTE).length;
 
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
-  const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    setOpenPopover(event.currentTarget);
+  const loadSurveys = useCallback(async () => {
+    try {
+      const dataSurveys = await surveyService.getMySurveys();
+      setSurveys(dataSurveys);
+    } catch (err) {
+      console.error('Error loading surveys:', err);
+    }
   }, []);
+
+  const handleOpenPopover = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setOpenPopover(event.currentTarget);
+      loadSurveys();
+    },
+    [loadSurveys]
+  );
 
   const handleClosePopover = useCallback(() => {
     setOpenPopover(null);
@@ -62,6 +84,20 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
     setNotifications(updatedNotifications);
   }, [notifications]);
 
+  useEffect(() => {
+    loadSurveys();
+  }, [loadSurveys]);
+
+  const handleSurveyClick = useCallback(
+    (assignmentId: string) => {
+      handleClosePopover();
+      navigate(`/surveys/${assignmentId}`);
+    },
+    [handleClosePopover, navigate]
+  );
+
+  const totalBadge = totalUnRead + pendingSurveys;
+
   return (
     <>
       <IconButton
@@ -70,7 +106,7 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
         sx={sx}
         {...other}
       >
-        <Badge badgeContent={totalUnRead} color="error">
+        <Badge badgeContent={totalBadge} color="error">
           <Iconify width={24} icon="solar:bell-bing-bold-duotone" />
         </Badge>
       </IconButton>
@@ -102,9 +138,10 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
           }}
         >
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="subtitle1">Notifications</Typography>
+            <Typography variant="subtitle1">Notificaciones</Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              You have {totalUnRead} unread messages
+              Tienes {totalUnRead} notificaciones no leídas
+              {pendingSurveys > 0 && ` · ${pendingSurveys} encuestas pendientes`}
             </Typography>
           </Box>
 
@@ -124,7 +161,7 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
             disablePadding
             subheader={
               <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
-                New
+                Nuevas
               </ListSubheader>
             }
           >
@@ -137,7 +174,7 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
             disablePadding
             subheader={
               <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
-                Before that
+                Anteriores
               </ListSubheader>
             }
           >
@@ -145,13 +182,39 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
               <NotificationItem key={notification.id} notification={notification} />
             ))}
           </List>
+
+          {/* Surveys section */}
+          <List
+            disablePadding
+            subheader={
+              <ListSubheader
+                disableSticky
+                sx={{ py: 1, px: 2.5, typography: 'overline', display: 'flex', alignItems: 'center', gap: 1 }}
+              >
+                Encuestas
+                {pendingSurveys > 0 && (
+                  <Chip label={pendingSurveys} size="small" color="error" sx={{ height: 18, fontSize: 11 }} />
+                )}
+              </ListSubheader>
+            }
+          >
+            {surveys.length === 0 ? (
+              <Typography variant="body2" sx={{ color: 'text.disabled', py: 1.5, px: 2.5 }}>
+                No hay encuestas disponibles
+              </Typography>
+            ) : (
+              surveys.map((survey) => (
+                <SurveyItem key={survey.id} survey={survey} onClick={() => handleSurveyClick(survey.id)} />
+              ))
+            )}
+          </List>
         </Scrollbar>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Box sx={{ p: 1 }}>
           <Button fullWidth disableRipple color="inherit">
-            View all
+            Ver todas
           </Button>
         </Box>
       </Popover>
@@ -193,6 +256,93 @@ function NotificationItem({ notification }: { notification: NotificationItemProp
           >
             <Iconify width={14} icon="solar:clock-circle-outline" />
             {fToNow(notification.postedAt)}
+          </Typography>
+        }
+      />
+    </ListItemButton>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function SurveyItem({
+  survey,
+  onClick,
+}: {
+  survey: SurveyAssignment;
+  onClick: () => void;
+}) {
+  const isPending = survey.status === SurveyStatus.PENDIENTE;
+
+  const getStatusColor = (status: SurveyStatus): 'warning' | 'success' | 'default' => {
+    switch (status) {
+      case SurveyStatus.PENDIENTE:
+        return 'warning';
+      case SurveyStatus.COMPLETADA:
+        return 'success';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: SurveyStatus): string => {
+    switch (status) {
+      case SurveyStatus.PENDIENTE:
+        return 'Pendiente';
+      case SurveyStatus.COMPLETADA:
+        return 'Completada';
+      case SurveyStatus.EXPIRADA:
+        return 'Expirada';
+      default:
+        return status;
+    }
+  };
+
+  return (
+    <ListItemButton
+      onClick={onClick}
+      sx={{
+        py: 1.5,
+        px: 2.5,
+        mt: '1px',
+        ...(isPending && {
+          bgcolor: 'action.selected',
+        }),
+      }}
+    >
+      <ListItemAvatar>
+        <Avatar sx={{ bgcolor: 'background.neutral' }}>
+          <Iconify icon="solar:file-bold-duotone" width={24} />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+            <Typography variant="subtitle2" sx={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {survey.surveyName}
+            </Typography>
+            <Chip
+              label={getStatusLabel(survey.status)}
+              size="small"
+              color={getStatusColor(survey.status)}
+              variant={isPending ? 'filled' : 'outlined'}
+              sx={{ height: 20, fontSize: 11, flexShrink: 0 }}
+            />
+          </Box>
+        }
+        secondary={
+          <Typography
+            variant="caption"
+            sx={{
+              mt: 0.5,
+              gap: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              color: 'text.disabled',
+            }}
+          >
+            <Iconify width={14} icon="solar:clock-circle-outline" />
+            {fToNow(survey.assignedAt)}
           </Typography>
         }
       />

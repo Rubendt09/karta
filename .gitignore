@@ -34,7 +34,7 @@ build/
 .vscode/
 
 # docs
-docs/
+uploads/
 
 ### Environment variables ###
 .env

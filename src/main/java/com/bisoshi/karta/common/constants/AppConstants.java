@@ -39,6 +39,8 @@ public class AppConstants {
     public static final String SURVEY_NOT_FOUND = "Survey not found";
     public static final String SURVEY_ALREADY_COMPLETED = "Survey has already been completed";
     public static final String SURVEY_CREATED_SUCCESSFULLY = "Survey created successfully";
+    public static final String SURVEY_UPDATED_SUCCESSFULLY = "Survey updated successfully";
+    public static final String SURVEY_DELETED_SUCCESSFULLY = "Survey deleted successfully";
     public static final String SURVEY_SUBMITTED_SUCCESSFULLY = "Survey submitted successfully";
 
     private AppConstants() {

@@ -44,6 +44,12 @@ const allNavItems: NavItem[] = [
     icon: icon('solar--round-graph-outline'),
     roles: ['ADMIN'],
   },
+  {
+    title: 'Encuestas',
+    path: '/admin/surveys',
+    icon: icon('solar--clipboard-list-linear'),
+    roles: ['ADMIN'],
+  },
 ];
 
 export const useNavData = (): NavItem[] => {

@@ -29,6 +29,7 @@ const MODULES = [
   { value: 'PERMISSION', label: 'Permiso' },
   { value: 'INVITATION', label: 'Invitación' },
   { value: 'USER', label: 'Usuario' },
+  { value: 'SURVEY', label: 'Encuesta' },
 ];
 
 const ACTIONS = [
@@ -46,6 +47,9 @@ const ACTIONS = [
   { value: 'INVITE', label: 'Invitar' },
   { value: 'ACCEPT', label: 'Aceptar' },
   { value: 'REJECT', label: 'Rechazar' },
+  { value: 'SUBMIT_SURVEY', label: 'Responder encuesta' },
+  { value: 'CREATE_SURVEY', label: 'Crear encuesta' },
+  { value: 'ASSIGN_SURVEY', label: 'Asignar encuesta' },
 ];
 
 export function AuditView() {
