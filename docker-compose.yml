@@ -32,8 +32,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/karta_db
       SPRING_DATASOURCE_USERNAME: karta_user
       SPRING_DATASOURCE_PASSWORD: karta_password
-      JWT_SECRET: your-secret-key-change-in-production
-      JWT_EXPIRATION: 86400000
+      JWT_SECRET: ${JWT_SECRET} # Required: Generate a strong secret key
+      JWT_EXPIRATION: 86400000  # 24 hours in milliseconds
     depends_on:
       - postgres
     volumes:

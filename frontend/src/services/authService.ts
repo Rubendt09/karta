@@ -14,6 +14,7 @@ export interface UserInfo {
 
 export interface LoginResponse {
   token: string;
+  refreshToken: string;
   userId: string;
   email: string;
   name: string;
@@ -36,6 +37,7 @@ export const authService = {
 
     if (loginData?.token) {
       localStorage.setItem('token', loginData.token);
+      localStorage.setItem('refreshToken', loginData.refreshToken);
       // Guardar los datos del usuario directamente desde loginData
       const userData = {
         userId: loginData.userId,
@@ -60,6 +62,7 @@ export const authService = {
     } finally {
       // Siempre limpiar el localStorage aunque falle la petición
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
     }
   },

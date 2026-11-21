@@ -1,6 +1,7 @@
 package com.bisoshi.karta.common.exception;
 
 import com.bisoshi.karta.common.dto.ResponseDto;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,13 @@ public class GlobalExceptionHandler {
                 .body(ResponseDto.error("Invalid credentials"));
     }
     
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ResponseDto<Void>> handleJwtException(JwtException ex) {
+        logger.error("Invalid token: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ResponseDto.error("Token inválido o expirado"));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ResponseDto<Void>> handleAccessDeniedException(AccessDeniedException ex) {
         logger.error("Access denied: {}", ex.getMessage());

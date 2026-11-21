@@ -14,6 +14,7 @@ import com.bisoshi.karta.modules.auth.dto.ChangePasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.ForgotPasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginRequest;
 import com.bisoshi.karta.modules.auth.dto.LoginResponse;
+import com.bisoshi.karta.modules.auth.dto.RefreshTokenRequest;
 import com.bisoshi.karta.modules.auth.dto.RegisterInvitedRequest;
 import com.bisoshi.karta.modules.auth.dto.ResetPasswordRequest;
 import com.bisoshi.karta.modules.auth.dto.UpdateProfileRequest;
@@ -40,6 +41,22 @@ public class AuthController {
         LoginResponse response = authService.login(request);
 
         return ResponseEntity.ok(ResponseDto.success("Login successful", response));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh access token", description = "Issues a new access token using a valid refresh token")
+    public ResponseEntity<ResponseDto<LoginResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        LoginResponse response = authService.refresh(request.getRefreshToken());
+
+        return ResponseEntity.ok(ResponseDto.success("Token refreshed", response));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout user", description = "Records the logout event for the authenticated user")
+    public ResponseEntity<ResponseDto<Void>> logout() {
+        authService.logout();
+
+        return ResponseEntity.ok(ResponseDto.success("Logout successful"));
     }
 
     @PostMapping("/register-invited")

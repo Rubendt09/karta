@@ -21,12 +21,46 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+let refreshPromise: Promise<string> | null = null;
+
+const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post<{ data: { token: string; refreshToken: string } }>('/auth/refresh', {
+        refreshToken: localStorage.getItem('refreshToken'),
+      })
+      .then(({ data }) => {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        return data.data.token;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
 // Interceptor para manejar errores de respuesta
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const original = error.config as RetriableConfig | undefined;
+
+    if (error.response?.status === 401 && original && !original._retry && !original.url?.startsWith('/auth/') && localStorage.getItem('refreshToken')) {
+      original._retry = true;
+      const token = await refreshAccessToken().catch(() => null);
+      if (token) {
+        original.headers.Authorization = `Bearer ${token}`;
+        return api(original);
+      }
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       window.location.href = '/sign-in';
     }

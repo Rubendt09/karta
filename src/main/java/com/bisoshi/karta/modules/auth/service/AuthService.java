@@ -51,8 +51,6 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException(AppConstants.INVALID_CREDENTIALS));
         
-        String token = jwtService.generateToken(user);
-
         activityLogService.log(ActivityLogRequest.builder()
                 .userId(user.getId())
                 .userEmail(user.getEmail())
@@ -63,7 +61,28 @@ public class AuthService {
                 .description("Inició sesión en el sistema")
                 .build());
         
-        return new LoginResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole());
+        return buildLoginResponse(user);
+    }
+
+    public LoginResponse refresh(String refreshToken) {
+        User user = userRepository.findByEmail(jwtService.extractRefreshSubject(refreshToken))
+                .orElseThrow(() -> new BadCredentialsException(AppConstants.USER_NOT_FOUND));
+
+        return buildLoginResponse(user);
+    }
+
+    public void logout() {
+        User user = getAuthenticatedUser();
+
+        activityLogService.log(ActivityLogRequest.builder()
+                .userId(user.getId())
+                .userEmail(user.getEmail())
+                .action("LOGOUT")
+                .module("AUTH")
+                .entityId(user.getId())
+                .entityName(user.getName())
+                .description("Cerró sesión en el sistema")
+                .build());
     }
     
     public UserResponse registerInvitedUser(RegisterInvitedRequest request) {
@@ -262,6 +281,17 @@ public class AuthService {
         return password.toString();
     }
     
+    private LoginResponse buildLoginResponse(User user) {
+        return new LoginResponse(
+                jwtService.generateToken(user),
+                jwtService.generateRefreshToken(user),
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole()
+        );
+    }
+
     private UserResponse mapToUserResponse(User user) {
         return new UserResponse(
                 user.getId(),

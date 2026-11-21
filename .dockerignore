@@ -1,0 +1,14 @@
+.git
+target
+uploads
+frontend
+tests
+infra
+*.md
+.env
+.env.example
+Dockerfile
+docker-compose*.yml
+.mvn
+mvnw
+mvnw.cmd
